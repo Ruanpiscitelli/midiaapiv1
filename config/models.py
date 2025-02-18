@@ -116,39 +116,47 @@ class ModelsSettings(BaseSettings):
             },
             
             # SDXL
-            "sdxl": {
-                "model_path": self.sdxl.model_path,
-                "local_path": self.sdxl.local_path,
-                "vae_path": self.sdxl.vae_path,
-                "width": self.sdxl.width,
-                "height": self.sdxl.height,
-                "num_inference_steps": self.sdxl.num_inference_steps,
-                "guidance_scale": self.sdxl.guidance_scale,
-                "negative_prompt": self.sdxl.negative_prompt,
-                "batch_size": self.sdxl.batch_size,
-                "use_fp16": self.sdxl.use_fp16,
-                "enable_vae_tiling": self.sdxl.enable_vae_tiling,
-                "torch_compile": self.sdxl.torch_compile
-            },
+            "sdxl": self.get_sdxl_config(),
             
             # Fish Speech
-            "fish_speech": {
-                "model_path": self.fish_speech.model_path,
-                "voice_dir": self.fish_speech.voice_dir,
-                "custom_voice_dir": self.fish_speech.custom_voice_dir,
-                "version": self.fish_speech.version,
-                "sample_rate": self.fish_speech.sample_rate,
-                "hop_length": self.fish_speech.hop_length,
-                "batch_size": self.fish_speech.batch_size,
-                "use_compile": self.fish_speech.use_compile,
-                "use_half": self.fish_speech.use_half,
-                "use_flash_attn": self.fish_speech.use_flash_attn,
-                "max_text_length": self.fish_speech.max_text_length,
-                "temperature": self.fish_speech.temperature,
-                "top_p": self.fish_speech.top_p,
-                "supported_languages": self.fish_speech.supported_languages,
-                "available_voices": self.fish_speech.available_voices
-            }
+            "fish_speech": self.get_fish_speech_config()
+        }
+        
+    def get_sdxl_config(self) -> dict:
+        """Retorna configuração específica do modelo SDXL."""
+        return {
+            "model_path": self.sdxl.model_path,
+            "local_path": self.sdxl.local_path,
+            "vae_path": self.sdxl.vae_path,
+            "width": self.sdxl.width,
+            "height": self.sdxl.height,
+            "num_inference_steps": self.sdxl.num_inference_steps,
+            "guidance_scale": self.sdxl.guidance_scale,
+            "negative_prompt": self.sdxl.negative_prompt,
+            "batch_size": self.sdxl.batch_size,
+            "use_fp16": self.sdxl.use_fp16,
+            "enable_vae_tiling": self.sdxl.enable_vae_tiling,
+            "torch_compile": self.sdxl.torch_compile
+        }
+        
+    def get_fish_speech_config(self) -> dict:
+        """Retorna configuração específica do modelo Fish Speech."""
+        return {
+            "model_path": self.fish_speech.model_path,
+            "voice_dir": self.fish_speech.voice_dir,
+            "custom_voice_dir": self.fish_speech.custom_voice_dir,
+            "version": self.fish_speech.version,
+            "sample_rate": self.fish_speech.sample_rate,
+            "hop_length": self.fish_speech.hop_length,
+            "batch_size": self.fish_speech.batch_size,
+            "use_compile": self.fish_speech.use_compile,
+            "use_half": self.fish_speech.use_half,
+            "use_flash_attn": self.fish_speech.use_flash_attn,
+            "max_text_length": self.fish_speech.max_text_length,
+            "temperature": self.fish_speech.temperature,
+            "top_p": self.fish_speech.top_p,
+            "supported_languages": self.fish_speech.supported_languages,
+            "available_voices": self.fish_speech.available_voices
         }
 
 # Instância global das configurações

@@ -31,32 +31,15 @@ TEMP_DIR = base_settings.TEMP_DIR
 # Re-exporta configurações de modelos
 DEVICE = models_settings.device
 NUM_GPUS = models_settings.num_gpus
-SDXL_CONFIG = models_settings.sdxl
-FISH_SPEECH_CONFIG = models_settings.fish_speech
+SDXL_CONFIG = models_settings.get_sdxl_config()
+FISH_SPEECH_CONFIG = models_settings.get_fish_speech_config()
 
 # Configurações gerais dos modelos
-MODELS_CONFIG = {
-    # Hardware e ambiente
-    "device": models_settings.device,
-    "num_gpus": models_settings.num_gpus,
-    "storage_type": models_settings.storage_type,
-    
-    # Credenciais e tokens
-    "hf_token": models_settings.hf_token,
-    "api_key": models_settings.api_key,
-    "secret_key": models_settings.secret_key,
-    
-    # Caminhos dos modelos
-    "sdxl_model_path": SDXL_CONFIG.model_path,
-    "sdxl_local_path": SDXL_CONFIG.local_path,
-    "fish_speech_model_path": FISH_SPEECH_CONFIG.model_path,
-    "fish_speech_voice_dir": FISH_SPEECH_CONFIG.voice_dir,
-    "fish_speech_custom_voice_dir": FISH_SPEECH_CONFIG.custom_voice_dir
-}
+MODELS_CONFIG = models_settings.get_config()
 
 # Adiciona os caminhos do modelo SDXL
-SDXL_MODEL_PATH = SDXL_CONFIG.model_path  # Caminho do modelo online (HuggingFace)
-SDXL_LOCAL_PATH = SDXL_CONFIG.local_path  # Caminho local do modelo
+SDXL_MODEL_PATH = SDXL_CONFIG["model_path"]  # Caminho do modelo online (HuggingFace)
+SDXL_LOCAL_PATH = SDXL_CONFIG["local_path"]  # Caminho local do modelo
 
 # Re-exporta configurações do MinIO
 MINIO_CONFIG = minio_settings.get_config()
