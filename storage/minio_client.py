@@ -149,6 +149,33 @@ def build_public_url(object_name: str) -> str:
     bucket = MINIO_CONFIG["bucket_name"]
     return f"{base}/{bucket}/{object_name}"
 
+def get_presigned_url(object_name: str, expires_in: int = 3600) -> Optional[str]:
+    """
+    Gera um link pré-assinado para acessar um arquivo no MinIO.
+
+    Args:
+        object_name: Nome do arquivo no MinIO
+        expires_in: Tempo de expiração do link em segundos (padrão: 1 hora)
+
+    Returns:
+        str | None: URL pré-assinada ou None em caso de erro
+    """
+    try:
+        client = get_minio_client()
+        if not client:
+            raise RuntimeError("Cliente MinIO não disponível")
+            
+        url = client.presigned_get_object(
+            bucket_name=MINIO_CONFIG["bucket_name"],
+            object_name=object_name,
+            expires=expires_in
+        )
+        return url
+        
+    except Exception as e:
+        logger.error(f"Erro ao gerar URL pré-assinada: {str(e)}")
+        return None
+
 # Inicialização
 if not ensure_bucket():
     logger.warning("Não foi possível garantir a existência do bucket")

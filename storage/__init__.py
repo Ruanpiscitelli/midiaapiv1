@@ -11,10 +11,25 @@ Documentação:
 
 from .minio_client import (
     upload_file,
+    download_file,
     get_presigned_url,
     delete_file,
-    list_files
+    list_files,
+    check_minio_connection,
+    get_minio_client,
+    ensure_bucket
 )
+
+__all__ = [
+    'upload_file',
+    'download_file',
+    'get_presigned_url',
+    'list_files',
+    'delete_file',
+    'check_minio_connection',
+    'get_minio_client',
+    'ensure_bucket'
+]
 
 # Exporta as funções principais para uso direto
 # Exemplo de uso:

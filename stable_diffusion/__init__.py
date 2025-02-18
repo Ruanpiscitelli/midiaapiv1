@@ -12,14 +12,16 @@ Documentação:
 from .sdxl_model import (
     generate_image,
     batch_generate_images,
-    set_model_config
+    set_model_config,
+    SDXLModel
 )
 
 # Exporta apenas as funções necessárias
 __all__ = [
     'generate_image',
     'batch_generate_images',
-    'set_model_config'
+    'set_model_config',
+    'SDXLModel'
 ]
 
 # Exemplos de uso:

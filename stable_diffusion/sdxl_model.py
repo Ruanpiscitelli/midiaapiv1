@@ -29,7 +29,7 @@ from PIL import Image
 import numpy as np
 
 from config import SDXL_CONFIG, SDXL_MODEL_PATH, DEVICE
-from storage.minio_client import upload_file
+from storage import upload_file, get_presigned_url
 
 class SDXLModel:
     """Classe para gerenciar o modelo Stable Diffusion XL."""
