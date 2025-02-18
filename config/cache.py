@@ -32,7 +32,8 @@ class CacheSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env.cache",
         env_file_encoding="utf-8",
-        case_sensitive=False
+        case_sensitive=False,
+        extra="ignore"
     )
 
 class RateLimitSettings(BaseSettings):
@@ -55,7 +56,8 @@ class RateLimitSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env.rate_limit",
         env_file_encoding="utf-8",
-        case_sensitive=False
+        case_sensitive=False,
+        extra="ignore"
     )
 
 # Instâncias globais
