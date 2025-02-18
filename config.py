@@ -37,9 +37,9 @@ SDXL_MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"  # Usa modelo do Hu
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 SDXL_CONFIG = {
-    "model_path": SDXL_MODEL_PATH / "model.safetensors",
-    "vae_path": SDXL_MODEL_PATH / "vae.safetensors",
-    "width": min(int(os.getenv("SDXL_WIDTH", "1280")), 2048),  # Limita tamanho máximo
+    "model_path": SDXL_MODEL_PATH,
+    "vae_path": "madebyollin/sdxl-vae-fp16-fix",
+    "width": min(int(os.getenv("SDXL_WIDTH", "1280")), 2048),
     "height": min(int(os.getenv("SDXL_HEIGHT", "720")), 2048),
     "num_inference_steps": min(int(os.getenv("SDXL_STEPS", "25")), 150),
     "guidance_scale": float(os.getenv("SDXL_GUIDANCE_SCALE", "7.5")),
@@ -47,9 +47,9 @@ SDXL_CONFIG = {
         "SDXL_NEGATIVE_PROMPT",
         "low quality, bad anatomy, worst quality, low resolution"
     ),
-    "batch_size": min(int(os.getenv("SDXL_BATCH_SIZE", "4")), 8),  # Limita batch máximo
-    "max_retries": int(os.getenv("SDXL_MAX_RETRIES", "3")),  # Número máximo de tentativas
-    "timeout": int(os.getenv("SDXL_TIMEOUT", "300")),  # Timeout em segundos
+    "batch_size": min(int(os.getenv("SDXL_BATCH_SIZE", "4")), 8),
+    "max_retries": int(os.getenv("SDXL_MAX_RETRIES", "3")),
+    "timeout": int(os.getenv("SDXL_TIMEOUT", "300"))
 }
 
 # Configurações do Fish Speech
