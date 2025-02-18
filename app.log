@@ -1,0 +1,203 @@
+2025-02-16 00:33:14,798 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:33:14,799 - config - INFO - Modo DEBUG: True
+2025-02-16 00:33:14,798 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:33:14,799 - config - INFO - Modo DEBUG: True
+2025-02-16 00:33:14,827 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:33:14,838 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:33:14,840 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:33:14,855 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:33:15,054 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:33:15,054 - config - INFO - Modo DEBUG: True
+2025-02-16 00:33:15,878 - flower.inspector - WARNING - Inspect method stats failed
+2025-02-16 00:33:15,878 - flower.inspector - WARNING - Inspect method revoked failed
+2025-02-16 00:33:15,882 - flower.inspector - WARNING - Inspect method registered failed
+2025-02-16 00:33:15,882 - flower.inspector - WARNING - Inspect method active failed
+2025-02-16 00:33:15,884 - flower.inspector - WARNING - Inspect method scheduled failed
+2025-02-16 00:33:15,884 - flower.inspector - WARNING - Inspect method reserved failed
+2025-02-16 00:33:15,884 - flower.inspector - WARNING - Inspect method conf failed
+2025-02-16 00:33:15,885 - flower.inspector - WARNING - Inspect method active_queues failed
+2025-02-16 00:37:10,065 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:37:10,065 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:37:10,065 - config - INFO - Modo DEBUG: True
+2025-02-16 00:37:10,065 - config - INFO - Modo DEBUG: True
+2025-02-16 00:37:10,089 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:37:10,098 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:37:10,099 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:37:10,106 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:37:45,598 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:37:45,598 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:37:45,598 - config - INFO - Modo DEBUG: True
+2025-02-16 00:37:45,598 - config - INFO - Modo DEBUG: True
+2025-02-16 00:37:45,627 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:37:45,638 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:37:45,640 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:37:45,648 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:37:45,876 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:37:45,876 - config - INFO - Modo DEBUG: True
+2025-02-16 00:41:10,398 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:41:10,399 - config - INFO - Modo DEBUG: True
+2025-02-16 00:41:10,399 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:41:10,399 - config - INFO - Modo DEBUG: True
+2025-02-16 00:41:10,426 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:41:10,438 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:41:10,440 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:41:10,446 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:41:10,600 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:41:10,600 - config - INFO - Modo DEBUG: True
+2025-02-16 00:41:26,986 - flower.command - INFO - 15 detected, shutting down
+2025-02-16 00:44:19,001 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:44:19,001 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:44:19,001 - config - INFO - Modo DEBUG: True
+2025-02-16 00:44:19,001 - config - INFO - Modo DEBUG: True
+2025-02-16 00:44:19,031 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:44:19,042 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:44:19,044 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:44:19,051 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:44:19,276 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:44:19,276 - config - INFO - Modo DEBUG: True
+2025-02-16 00:44:35,831 - flower.command - INFO - 15 detected, shutting down
+2025-02-16 00:45:46,679 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:45:46,679 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:45:46,679 - config - INFO - Modo DEBUG: True
+2025-02-16 00:45:46,679 - config - INFO - Modo DEBUG: True
+2025-02-16 00:45:46,716 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:45:46,735 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:45:46,737 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:45:46,756 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:45:47,000 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:45:47,000 - config - INFO - Modo DEBUG: True
+2025-02-16 00:46:04,576 - flower.command - INFO - 15 detected, shutting down
+2025-02-16 00:46:31,135 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:46:31,135 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:46:31,136 - config - INFO - Modo DEBUG: True
+2025-02-16 00:46:31,136 - config - INFO - Modo DEBUG: True
+2025-02-16 00:46:31,177 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:46:31,193 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:46:31,196 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:46:31,205 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:46:31,874 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:46:31,875 - config - INFO - Modo DEBUG: True
+2025-02-16 00:46:48,638 - flower.command - INFO - 15 detected, shutting down
+2025-02-16 00:49:58,852 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:49:58,853 - config - INFO - Modo DEBUG: True
+2025-02-16 00:49:58,853 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:49:58,853 - config - INFO - Modo DEBUG: True
+2025-02-16 00:49:58,883 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:49:58,894 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:49:58,898 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:49:58,909 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:49:59,148 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:49:59,148 - config - INFO - Modo DEBUG: True
+2025-02-16 00:51:34,966 - flower.command - INFO - 15 detected, shutting down
+2025-02-16 00:54:31,317 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:54:31,317 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:54:31,317 - config - INFO - Modo DEBUG: True
+2025-02-16 00:54:31,317 - config - INFO - Modo DEBUG: True
+2025-02-16 00:54:31,360 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 00:54:31,379 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 00:54:31,383 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 00:54:31,393 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 00:54:31,910 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 00:54:31,911 - config - INFO - Modo DEBUG: True
+2025-02-16 00:59:52,801 - flower.command - INFO - 15 detected, shutting down
+2025-02-16 01:02:09,641 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 01:02:09,641 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 01:02:09,641 - config - INFO - Modo DEBUG: True
+2025-02-16 01:02:09,641 - config - INFO - Modo DEBUG: True
+2025-02-16 01:02:09,671 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 01:02:09,683 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 01:02:09,687 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 01:02:09,694 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+2025-02-16 01:02:09,922 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 01:02:09,922 - config - INFO - Modo DEBUG: True
+2025-02-16 01:06:33,262 - flower.command - INFO - 15 detected, shutting down

@@ -1,0 +1,51 @@
+2025-02-16 01:02:09,641 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 01:02:09,641 - config - INFO - Modo DEBUG: True
+ 
+ -------------- celery@MBP-de-ruan.local v5.3.6 (emerald-rush)
+--- ***** ----- 
+-- ******* ---- macOS-15.3-arm64-arm-64bit 2025-02-16 01:02:09
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         simpleapi:0x103a28790
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 11 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+
+
+[2025-02-16 01:02:10,139: WARNING/MainProcess] /Volumes/Extreme SSD/projetos/simpleapi/venv/lib/python3.11/site-packages/celery/worker/consumer/consumer.py:507: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-02-16 01:02:10,147: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-02-16 01:02:10,148: WARNING/MainProcess] /Volumes/Extreme SSD/projetos/simpleapi/venv/lib/python3.11/site-packages/celery/worker/consumer/consumer.py:507: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-02-16 01:02:10,150: INFO/MainProcess] mingle: searching for neighbors
+[2025-02-16 01:02:11,161: WARNING/MainProcess] /Volumes/Extreme SSD/projetos/simpleapi/venv/lib/python3.11/site-packages/celery/app/control.py:56: DuplicateNodenameWarning: Received multiple replies from node name: celery@MBP-de-ruan.local.
+Please make sure you give each node a unique nodename using
+the celery worker `-n` option.
+  warnings.warn(DuplicateNodenameWarning(
+
+[2025-02-16 01:02:11,162: INFO/MainProcess] mingle: all alone
+[2025-02-16 01:02:11,175: INFO/MainProcess] Worker celery@MBP-de-ruan.local pronto para processar tarefas
+[2025-02-16 01:02:11,176: INFO/MainProcess] Configurações: Settings({'deprecated_settings': set(), 'broker_url': 'redis://localhost:6379/0', 'result_backend': 'redis://localhost:6379/0', 'task_serializer': 'json', 'result_serializer': 'json', 'accept_content': ['json'], 'enable_utc': True, 'task_track_started': True, 'worker_prefetch_multiplier': 1, 'task_time_limit': 3600, 'task_soft_time_limit': 3300, 'task_retry_delay_start': 3, 'task_max_retries': 3, 'task_retry_exponential_backoff': True, 'worker_redirect_stdouts': False, 'worker_log_format': '[%(asctime)s: %(levelname)s/%(processName)s] %(message)s', 'worker_task_log_format': '[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s', 'task_routes': {'tasks.generate_image_task': {'queue': 'gpu'}, 'tasks.generate_tts_task': {'queue': 'gpu'}, 'tasks.generate_video_task': {'queue': 'cpu'}}, 'task_annotations': {'tasks.generate_image_task': {'rate_limit': '2/m'}, 'tasks.generate_tts_task': {'rate_limit': '10/m'}, 'tasks.generate_video_task': {'rate_limit': '5/m'}}, 'include': ('celery.app.builtins',)}, {}, {'accept_content': ['json'], 'result_accept_content': None, 'enable_utc': True, 'imports': (), 'include': (), 'timezone': None, 'beat_max_loop_interval': 0, 'beat_schedule': {}, 'beat_scheduler': 'celery.beat:PersistentScheduler', 'beat_schedule_filename': 'celerybeat-schedule', 'beat_sync_every': 0, 'beat_cron_starting_deadline': None, 'broker_url': 'redis://localhost:6379/0', 'broker_read_url': None, 'broker_write_url': None, 'broker_transport': None, 'broker_transport_options': {}, 'broker_connection_timeout': 4, 'broker_connection_retry': True, 'broker_connection_retry_on_startup': None, 'broker_connection_max_retries': 100, 'broker_channel_error_retry': False, 'broker_failover_strategy': None, 'broker_heartbeat': 120, 'broker_heartbeat_checkrate': 3.0, 'broker_login_method': None, 'broker_pool_limit': 10, 'broker_use_ssl': False, 'broker_host': None, 'broker_port': None, 'broker_user': None, 'broker_password': None, 'broker_vhost': None, 'cache_backend': None, 'cache_backend_options': {}, 'cassandra_entry_ttl': None, 'cassandra_keyspace': None, 'cassandra_port': None, 'cassandra_read_consistency': None, 'cassandra_servers': None, 'cassandra_bundle_path': None, 'cassandra_table': None, 'cassandra_write_consistency': None, 'cassandra_auth_provider': None, 'cassandra_auth_kwargs': None, 'cassandra_options': {}, 's3_access_key_id': None, 's3_secret_access_key': None, 's3_bucket': None, 's3_base_path': None, 's3_endpoint_url': None, 's3_region': None, 'azureblockblob_container_name': 'celery', 'azureblockblob_retry_initial_backoff_sec': 2, 'azureblockblob_retry_increment_base': 2, 'azureblockblob_retry_max_attempts': 3, 'azureblockblob_base_path': '', 'azureblockblob_connection_timeout': 20, 'azureblockblob_read_timeout': 120, 'control_queue_ttl': 300.0, 'control_queue_expires': 10.0, 'control_exchange': 'celery', 'couchbase_backend_settings': None, 'arangodb_backend_settings': None, 'mongodb_backend_settings': None, 'cosmosdbsql_database_name': 'celerydb', 'cosmosdbsql_collection_name': 'celerycol', 'cosmosdbsql_consistency_level': 'Session', 'cosmosdbsql_max_retry_attempts': 9, 'cosmosdbsql_max_retry_wait_time': 30, 'event_queue_expires': 60.0, 'event_queue_ttl': 5.0, 'event_queue_prefix': 'celeryev', 'event_serializer': 'json', 'event_exchange': 'celeryev', 'redis_backend_use_ssl': None, 'redis_db': None, 'redis_host': None, 'redis_max_connections': None, 'redis_username': None, 'redis_password': None, 'redis_port': None, 'redis_socket_timeout': 120.0, 'redis_socket_connect_timeout': None, 'redis_retry_on_timeout': False, 'redis_socket_keepalive': False, 'result_backend': 'redis://localhost:6379/0', 'result_cache_max': -1, 'result_compression': None, 'result_exchange': 'celeryresults', 'result_exchange_type': 'direct', 'result_expires': datetime.timedelta(days=1), 'result_persistent': None, 'result_extended': False, 'result_serializer': 'json', 'result_backend_transport_options': {}, 'result_chord_retry_interval': 1.0, 'result_chord_join_timeout': 3.0, 'result_backend_max_sleep_between_retries_ms': 10000, 'result_backend_max_retries': inf, 'result_backend_base_sleep_between_retries_ms': 10, 'result_backend_always_retry': False, 'elasticsearch_retry_on_timeout': None, 'elasticsearch_max_retries': None, 'elasticsearch_timeout': None, 'elasticsearch_save_meta_as_text': True, 'security_certificate': None, 'security_cert_store': None, 'security_key': None, 'security_key_password': None, 'security_digest': 'sha256', 'database_url': None, 'database_engine_options': None, 'database_short_lived_sessions': False, 'database_table_schemas': None, 'database_table_names': None, 'task_acks_late': False, 'task_acks_on_failure_or_timeout': True, 'task_always_eager': False, 'task_annotations': {'tasks.generate_image_task': {'rate_limit': '2/m'}, 'tasks.generate_tts_task': {'rate_limit': '10/m'}, 'tasks.generate_video_task': {'rate_limit': '5/m'}}, 'task_compression': None, 'task_create_missing_queues': True, 'task_inherit_parent_priority': False, 'task_default_delivery_mode': 2, 'task_default_queue': 'celery', 'task_default_exchange': None, 'task_default_exchange_type': 'direct', 'task_default_routing_key': None, 'task_default_rate_limit': None, 'task_default_priority': None, 'task_eager_propagates': False, 'task_ignore_result': False, 'task_store_eager_result': False, 'task_protocol': 2, 'task_publish_retry': True, 'task_publish_retry_policy': {'max_retries': 3, 'interval_start': 0, 'interval_max': 1, 'interval_step': 0.2}, 'task_queues': None, 'task_queue_max_priority': None, 'task_reject_on_worker_lost': None, 'task_remote_tracebacks': False, 'task_routes': {'tasks.generate_image_task': {'queue': 'gpu'}, 'tasks.generate_tts_task': {'queue': 'gpu'}, 'tasks.generate_video_task': {'queue': 'cpu'}}, 'task_send_sent_event': False, 'task_serializer': 'json', 'task_soft_time_limit': 3300, 'task_time_limit': 3600, 'task_store_errors_even_if_ignored': False, 'task_track_started': True, 'task_allow_error_cb_on_chord_header': False, 'worker_agent': None, 'worker_autoscaler': 'celery.worker.autoscale:Autoscaler', 'worker_cancel_long_running_tasks_on_connection_loss': False, 'worker_concurrency': None, 'worker_consumer': 'celery.worker.consumer:Consumer', 'worker_direct': False, 'worker_disable_rate_limits': False, 'worker_deduplicate_successful_tasks': False, 'worker_enable_remote_control': True, 'worker_hijack_root_logger': True, 'worker_log_color': None, 'worker_log_format': '[%(asctime)s: %(levelname)s/%(processName)s] %(message)s', 'worker_lost_wait': 10.0, 'worker_max_memory_per_child': None, 'worker_max_tasks_per_child': None, 'worker_pool': 'prefork', 'worker_pool_putlocks': True, 'worker_pool_restarts': False, 'worker_proc_alive_timeout': 4.0, 'worker_prefetch_multiplier': 1, 'worker_redirect_stdouts': False, 'worker_redirect_stdouts_level': 'WARNING', 'worker_send_task_events': False, 'worker_state_db': None, 'worker_task_log_format': '[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s', 'worker_timer': None, 'worker_timer_precision': 1.0, 'deprecated_settings': None, 'task_retry_delay_start': 3, 'task_max_retries': 3, 'task_retry_exponential_backoff': True})
+[2025-02-16 01:02:11,176: INFO/MainProcess] celery@MBP-de-ruan.local ready.
+[2025-02-16 01:02:14,691: INFO/MainProcess] Events of group {task} enabled by remote.
+
+worker: Hitting Ctrl+C again will terminate all running tasks!
+
+worker: Warm shutdown (MainProcess)
+
+worker: Warm shutdown (MainProcess)

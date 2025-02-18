@@ -1,0 +1,20 @@
+2025-02-16 01:02:09,641 - config - INFO - Iniciando aplicação Gerador de Vídeos com IA v2.0
+2025-02-16 01:02:09,641 - config - INFO - Modo DEBUG: True
+2025-02-16 01:02:09,671 - flower.command - INFO - Visit me at http://0.0.0.0:5555
+2025-02-16 01:02:09,683 - flower.command - INFO - Broker: redis://localhost:6379/0
+2025-02-16 01:02:09,687 - flower.command - INFO - Registered tasks: 
+['celery.accumulate',
+ 'celery.backend_cleanup',
+ 'celery.chain',
+ 'celery.chord',
+ 'celery.chord_unlock',
+ 'celery.chunks',
+ 'celery.group',
+ 'celery.map',
+ 'celery.starmap']
+2025-02-16 01:02:09,694 - kombu.mixins - INFO - Connected to redis://localhost:6379/0
+/Volumes/Extreme SSD/projetos/simpleapi/venv/lib/python3.11/site-packages/celery/app/control.py:56: DuplicateNodenameWarning: Received multiple replies from node name: celery@MBP-de-ruan.local.
+Please make sure you give each node a unique nodename using
+the celery worker `-n` option.
+  warnings.warn(DuplicateNodenameWarning(
+2025-02-16 01:06:33,262 - flower.command - INFO - 15 detected, shutting down
