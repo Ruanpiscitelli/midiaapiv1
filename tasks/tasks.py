@@ -34,6 +34,9 @@ def generate_image_task(self, job_id, request_data):
             seed=request_data.get("seed", None)
         )
 
+        if image_path is None:
+            raise RuntimeError("Falha na geração da imagem")
+
         # Faz upload da imagem para o MinIO
         image_url = upload_file(image_path, f"images/{job_id}.png")
 

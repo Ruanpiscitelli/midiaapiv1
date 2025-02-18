@@ -376,3 +376,77 @@ def get_model() -> SDXLModel:
     if model is None:
         model = SDXLModel()
     return model
+
+def set_model_config(config: dict) -> None:
+    """
+    Atualiza a configuração do modelo.
+    
+    Args:
+        config: Dicionário com novas configurações
+    """
+    SDXL_CONFIG.update(config)
+    logger.info("Configuração do modelo atualizada")
+
+def generate_image(
+    prompt: str,
+    width: int = SDXL_CONFIG["width"],
+    height: int = SDXL_CONFIG["height"],
+    steps: int = SDXL_CONFIG["num_inference_steps"],
+    seed: Optional[int] = None
+) -> Optional[Path]:
+    """
+    Gera uma única imagem.
+    
+    Args:
+        prompt: Texto descritivo
+        width: Largura da imagem
+        height: Altura da imagem
+        steps: Passos de inferência
+        seed: Seed para reprodutibilidade
+        
+    Returns:
+        Path do arquivo gerado ou None se falhar
+    """
+    try:
+        # Usa a instância global do modelo
+        global model
+        if model is None:
+            model = SDXLModel()
+            
+        # Chama o método da instância do modelo
+        return model.generate_image(
+            prompt=prompt,
+            width=width,
+            height=height,
+            steps=steps,
+            seed=seed
+        )
+    except Exception as e:
+        logger.error(f"Erro na geração: {e}")
+        return None
+
+def batch_generate_images(
+    prompts: List[str],
+    **kwargs
+) -> List[Optional[Path]]:
+    """
+    Gera múltiplas imagens em batch.
+    
+    Args:
+        prompts: Lista de prompts
+        **kwargs: Argumentos adicionais para generate_image
+        
+    Returns:
+        Lista de paths dos arquivos gerados (None para falhas)
+    """
+    try:
+        # Usa a instância global do modelo
+        global model
+        if model is None:
+            model = SDXLModel()
+            
+        # Chama o método da instância do modelo
+        return model.batch_generate_images(prompts=prompts, **kwargs)
+    except Exception as e:
+        logger.error(f"Erro na geração em batch: {e}")
+        return [None] * len(prompts)
