@@ -9,20 +9,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configurações do MinIO
-MINIO_ENDPOINT = os.getenv('MINIO_ENDPOINT', 'minio.ruanpiscitelli.com')
+BASE_ENDPOINT = 'minio.ruanpiscitelli.com'
+API_PATH = '/api/v1'
 MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY', 'ts4Xv4Oa01o9HyfujRnH')
 MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY', 'BAAp2IWeyR6gVREoxeZMWVbmQM9B7VbuC4U3YHpN')
 MINIO_BUCKET = os.getenv('MINIO_BUCKET', 'arquivosapi')
-MINIO_SECURE = os.getenv('MINIO_SECURE', 'true').lower() == 'true'
+MINIO_SECURE = True
+
+logger.info(f"Conectando ao MinIO em: {BASE_ENDPOINT}{API_PATH}")
 
 # Inicializa o cliente MinIO
-minio_client = Minio(
-    endpoint=MINIO_ENDPOINT,
-    access_key=MINIO_ACCESS_KEY,
-    secret_key=MINIO_SECRET_KEY,
-    secure=MINIO_SECURE,
-    region='auto'  # Adiciona configuração da região
-)
+try:
+    minio_client = Minio(
+        endpoint=BASE_ENDPOINT,
+        access_key=MINIO_ACCESS_KEY,
+        secret_key=MINIO_SECRET_KEY,
+        secure=MINIO_SECURE,
+        region='auto',
+        http_client=None
+    )
+    logger.info("Cliente MinIO inicializado")
+except Exception as e:
+    logger.error(f"Erro ao inicializar cliente MinIO: {str(e)}")
+    raise
 
 def ensure_bucket_exists():
     """Verifica se o bucket existe e cria se necessário."""
@@ -53,7 +62,7 @@ def upload_file(file_path: str, object_name: str) -> str:
         )
         
         # Retorna a URL do arquivo
-        return f"https://{MINIO_ENDPOINT}/{MINIO_BUCKET}/{object_name}"
+        return f"https://{BASE_ENDPOINT}{API_PATH}/{MINIO_BUCKET}/{object_name}"
         
     except Exception as e:
         print(f"Erro no upload do arquivo: {str(e)}")

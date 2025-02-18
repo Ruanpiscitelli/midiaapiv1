@@ -20,12 +20,15 @@ transformers==4.37.2        # Modelos de transformers da Hugging Face
 accelerate==0.26.1         # Otimizações para modelos grandes
 safetensors==0.4.2         # Formato otimizado para pesos de modelos
 huggingface-hub==0.20.3
+omegaconf>=2.3.0          # Adicionado para SDXL
+xformers>=0.0.23          # Otimização para SDXL
+einops>=0.7.0             # Dependência do SDXL
 numpy<2.0
 moviepy==1.0.3             # Edição de vídeo
 ffmpeg-python==0.2.0       # Interface Python para FFmpeg
 
 # Armazenamento e banco de dados
-minio==7.2.3               # Cliente S3/MinIO
+minio>=7.2.0               # Cliente S3/MinIO
 SQLAlchemy>=2.0.25         # ORM para banco de dados
 aiosqlite==0.19.0          # Driver SQLite assíncrono
 alembic>=1.13.1            # Migrações de banco de dados
