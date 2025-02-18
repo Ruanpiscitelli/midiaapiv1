@@ -66,16 +66,18 @@ def get_minio_client() -> Optional[Minio]:
         
         # Cria cliente com as credenciais atuais
         client = Minio(
-            endpoint=MINIO_CONFIG["endpoint"],
-            access_key=minio_credentials.credentials["access_key"],
-            secret_key=minio_credentials.credentials["secret_key"],
-            session_token=minio_credentials.credentials["session_token"],
-            secure=MINIO_CONFIG["secure"],
-            region=MINIO_CONFIG["region"]
+            MINIO_CONFIG["endpoint"],
+            access_key=MINIO_CONFIG["access_key"],
+            secret_key=MINIO_CONFIG["secret_key"],
+            secure=MINIO_CONFIG["secure"]
         )
         
-        # Testa conexão
-        client.list_buckets()
+        # Verifica se o bucket existe
+        if not client.bucket_exists(MINIO_CONFIG["bucket"]):
+            logger.warning(f"Bucket {MINIO_CONFIG['bucket']} não existe! Criando...")
+            client.make_bucket(MINIO_CONFIG["bucket"])
+        logger.info(f"Conectado ao bucket {MINIO_CONFIG['bucket']} com sucesso!")
+        
         return client
         
     except Exception as e:
@@ -149,31 +151,29 @@ def build_public_url(object_name: str) -> str:
     bucket = MINIO_CONFIG["bucket_name"]
     return f"{base}/{bucket}/{object_name}"
 
-def get_presigned_url(object_name: str, expires_in: int = 3600) -> Optional[str]:
+def get_presigned_url(object_name: str, expires: int = 7 * 24 * 60 * 60) -> Optional[str]:
     """
-    Gera um link pré-assinado para acessar um arquivo no MinIO.
-
+    Gera URL pressinada para um objeto.
+    
     Args:
-        object_name: Nome do arquivo no MinIO
-        expires_in: Tempo de expiração do link em segundos (padrão: 1 hora)
-
+        object_name: Nome do objeto no MinIO
+        expires: Tempo de expiração em segundos (default: 7 dias)
+        
     Returns:
-        str | None: URL pré-assinada ou None em caso de erro
+        URL pressinada ou None se falhar
     """
     try:
         client = get_minio_client()
         if not client:
             raise RuntimeError("Cliente MinIO não disponível")
             
-        url = client.presigned_get_object(
+        return client.presigned_get_object(
             bucket_name=MINIO_CONFIG["bucket_name"],
             object_name=object_name,
-            expires=expires_in
+            expires=expires
         )
-        return url
-        
     except Exception as e:
-        logger.error(f"Erro ao gerar URL pré-assinada: {str(e)}")
+        logger.error(f"Erro ao gerar URL pressinada para {object_name}: {str(e)}")
         return None
 
 @retry(
