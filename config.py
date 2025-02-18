@@ -61,13 +61,12 @@ SDXL_CONFIG = {
 
 # Configurações do Fish Speech
 FISH_SPEECH_CONFIG = {
-    "model_path": FISH_SPEECH_MODEL_PATH.joinpath("model.pth"),
-    "available_voices": ["male_1", "female_1"],
-    "voice_dir": FISH_SPEECH_MODEL_PATH.joinpath("voices"),
-    "custom_voice_dir": FISH_SPEECH_MODEL_PATH.joinpath("custom_voices"),
-    "supported_languages": ["pt-BR", "en-US"],
-    "sample_rate": 44100,
-    "real_time_factor": 5  # ~5 segundos de processamento por segundo de áudio
+    "model_path": BASE_DIR / "models" / "fish_speech",
+    "sample_rate": 22050,
+    "max_text_length": 1000,
+    "batch_size": 1,
+    "temperature": 0.8,
+    "supported_languages": ["pt-BR", "en-US"]
 }
 
 # Configurações do MinIO - Simplificadas e à prova de falhas
