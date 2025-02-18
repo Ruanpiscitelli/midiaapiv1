@@ -36,6 +36,24 @@ class CacheSettings(BaseSettings):
         extra="ignore"
     )
 
+    def get_config(self) -> dict:
+        """Retorna configuração formatada para cache."""
+        return {
+            "REDIS_URL": self.REDIS_URL,
+            "CACHE_PREFIX": self.CACHE_PREFIX,
+            "TTL": self.TTL,
+            "MAX_SIZE": self.MAX_SIZE,
+            "CACHE_TIMES": self.CACHE_TIMES,
+            "COMPRESSION": {
+                "enabled": self.COMPRESSION_ENABLED,
+                "level": self.COMPRESSION_LEVEL
+            },
+            "FALLBACK": {
+                "enabled": self.FALLBACK_ENABLED,
+                "timeout": self.FALLBACK_TIMEOUT
+            }
+        }
+
 class RateLimitSettings(BaseSettings):
     """Configurações de rate limiting."""
     ENABLED: bool = True
@@ -59,6 +77,15 @@ class RateLimitSettings(BaseSettings):
         case_sensitive=False,
         extra="ignore"
     )
+
+    def get_config(self) -> dict:
+        """Retorna configuração formatada para rate limiting."""
+        return {
+            "enabled": self.ENABLED,
+            "default_limit": self.DEFAULT_LIMIT,
+            "storage_url": self.STORAGE_URL,
+            "limits": self.LIMITS
+        }
 
 # Instâncias globais
 cache_settings = CacheSettings()
