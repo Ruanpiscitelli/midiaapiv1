@@ -117,14 +117,17 @@ def setup_virtual_env() -> bool:
         # Instala e atualiza pip primeiro
         subprocess.run([str(pip_path), "install", "--upgrade", "pip"], check=True)
         
-        # Instala torch e cuda primeiro
+        # Desinstala versões anteriores do torch para evitar conflitos
+        subprocess.run([str(pip_path), "uninstall", "-y", "torch", "torchvision", "torchaudio"], check=True)
+        
+        # Instala torch e cuda com versões específicas e compatíveis
         logger.info("Instalando PyTorch com suporte CUDA...")
         subprocess.run([
             str(pip_path), 
             "install", 
-            "torch", 
-            "torchvision", 
-            "torchaudio", 
+            "torch==2.2.0", 
+            "torchvision==0.17.0", 
+            "torchaudio==2.2.0", 
             "--index-url", 
             "https://download.pytorch.org/whl/cu121"
         ], check=True)
