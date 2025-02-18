@@ -21,17 +21,28 @@ class FishSpeechTTS:
     """Classe otimizada para síntese de voz usando Fish Speech."""
     
     def __init__(self):
-        """
-        Inicializa o FishSpeechTTS com configurações do modelo
-        """
-        self.model = None
-        self.model_path = self._get_model_path()
-        self._load_base_model()
-        
-        # Cache de vozes
-        self.loaded_voices: Dict[str, torch.Tensor] = {}
-        
-        logger.info(f"Fish Speech V{self.config['version']} inicializado no {self.device}")
+        """Inicializa o modelo com otimizações."""
+        try:
+            # Configurações básicas
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.config = FISH_SPEECH_CONFIG
+            self.model_dir = Path(self.config["model_path"])
+            
+            # Inicializa atributos
+            self.model = None
+            self.model_path = self._get_model_path()
+            
+            # Carrega modelo
+            self._load_base_model()
+            
+            # Cache de vozes
+            self.loaded_voices: Dict[str, torch.Tensor] = {}
+            
+            logger.info(f"Fish Speech V{self.config['version']} inicializado no {self.device}")
+            
+        except Exception as e:
+            logger.error(f"Erro na inicialização: {str(e)}")
+            raise RuntimeError("Falha ao inicializar FishSpeechTTS") from e
 
     def _get_model_path(self) -> Path:
         """
@@ -50,6 +61,7 @@ class FishSpeechTTS:
                 
         # Tenta caminhos padrão
         default_paths = [
+            self.model_dir / "model.pth",  # Primeiro tenta no diretório configurado
             Path("/workspace/midiaapiv1/models/fish_speech/model.pth"),
             Path("models/fish_speech/model.pth"),
             Path(os.path.expanduser("~/.cache/fish_speech/model.pth"))
@@ -57,16 +69,15 @@ class FishSpeechTTS:
         
         for path in default_paths:
             if path.exists():
+                logger.info(f"Modelo encontrado em: {path}")
                 return path
                 
-        # Se nenhum caminho funcionar, usa o primeiro padrão
-        logger.warning(f"Modelo não encontrado nos caminhos padrão: {default_paths}")
+        # Se nenhum caminho funcionar, usa o caminho do diretório configurado
+        logger.warning(f"Modelo não encontrado nos caminhos padrão. Usando: {default_paths[0]}")
         return default_paths[0]
     
     def _load_base_model(self):
-        """
-        Carrega o modelo base, com tratamento de erro apropriado
-        """
+        """Carrega e otimiza o modelo base."""
         try:
             if not self.model_path.exists():
                 raise FileNotFoundError(
@@ -75,8 +86,19 @@ class FishSpeechTTS:
                     "ou coloque o modelo em um dos caminhos padrão."
                 )
                 
+            # Carrega modelo
             self.model = torch.jit.load(self.model_path)
-            logger.info(f"Modelo carregado com sucesso de: {self.model_path}")
+            self.model.to(self.device)
+            self.model.eval()
+            
+            # Otimizações
+            if torch.cuda.is_available():
+                if self.config["use_half"]:
+                    self.model = self.model.half()
+                if self.config["use_compile"]:
+                    self.model = torch.compile(self.model)
+                    
+            logger.info(f"Modelo base carregado e otimizado em: {self.device}")
             
         except Exception as e:
             logger.error(f"Erro ao carregar modelo FishSpeech: {e}")
