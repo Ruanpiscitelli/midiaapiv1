@@ -232,5 +232,46 @@ class FishSpeechTTS:
             logger.error(f"Erro no processo de geração e upload: {str(e)}")
             return None
 
+def generate_tts(
+    text: str,
+    job_id: str,
+    voice_name: str = "default",
+    language: str = "pt-BR"
+) -> Optional[str]:
+    """
+    Função de alto nível para geração de TTS e upload do áudio.
+    
+    Args:
+        text: Texto para converter em fala
+        job_id: ID único do job para nomear o arquivo
+        voice_name: Nome da voz a ser usada (default ou custom)
+        language: Código do idioma (ex: pt-BR, en-US)
+        
+    Returns:
+        Optional[str]: URL do arquivo de áudio gerado ou None em caso de erro
+    """
+    try:
+        # Valida parâmetros
+        if not text or not job_id:
+            raise ValueError("Texto e job_id são obrigatórios")
+            
+        # Usa a instância global para gerar e fazer upload
+        url = tts.generate_and_upload(
+            text=text,
+            job_id=job_id,
+            voice_name=voice_name,
+            language=language
+        )
+        
+        if not url:
+            raise RuntimeError("Falha ao gerar ou fazer upload do áudio")
+            
+        logger.info(f"Áudio gerado com sucesso: {url}")
+        return url
+        
+    except Exception as e:
+        logger.error(f"Erro em generate_tts: {str(e)}")
+        return None
+
 # Instância global com inicialização lazy
 tts = FishSpeechTTS()
