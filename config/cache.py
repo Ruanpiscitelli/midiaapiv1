@@ -29,7 +29,11 @@ class CacheSettings(BaseSettings):
     FALLBACK_ENABLED: bool = True
     FALLBACK_TIMEOUT: int = 5
     
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=".env.cache",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
 
 class RateLimitSettings(BaseSettings):
     """Configurações de rate limiting."""
@@ -48,7 +52,11 @@ class RateLimitSettings(BaseSettings):
         "health": "100/minute"
     }
     
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=".env.rate_limit",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
 
 # Instâncias globais
 cache_settings = CacheSettings()

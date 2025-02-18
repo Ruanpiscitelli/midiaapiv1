@@ -77,7 +77,7 @@ class ModelsSettings(BaseSettings):
     fish_speech: FishSpeechConfig = FishSpeechConfig()
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env.models",
         env_file_encoding="utf-8",
         case_sensitive=False
     )
