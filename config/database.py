@@ -56,6 +56,46 @@ class DatabaseSettings(BaseSettings):
                 f"postgresql://{self.username}:{self.password}@"
                 f"{self.host}:{self.port}/{self.database}"
             )
+            
+    def get_config(self) -> dict:
+        """Retorna configuração formatada para SQLAlchemy."""
+        return {
+            # Conexão principal
+            "url": self.url,
+            "host": self.host,
+            "port": self.port,
+            "database": self.database,
+            "username": self.username,
+            "password": self.password,
+            
+            # Configurações de pool
+            "pool_size": self.pool_size,
+            "max_overflow": self.max_overflow,
+            "pool_timeout": self.pool_timeout,
+            "pool_recycle": self.pool_recycle,
+            
+            # Configurações de timeout
+            "connect_timeout": self.connect_timeout,
+            "command_timeout": self.command_timeout,
+            
+            # Configurações de SSL
+            "ssl_mode": self.ssl_mode,
+            "ssl_cert": self.ssl_cert,
+            
+            # Configurações de debug
+            "echo": self.echo,
+            "echo_pool": self.echo_pool,
+            
+            # Configurações do SQLAlchemy
+            "sqlalchemy": {
+                "pool_size": self.pool_size,
+                "max_overflow": self.max_overflow,
+                "pool_timeout": self.pool_timeout,
+                "pool_recycle": self.pool_recycle,
+                "echo": self.echo,
+                "echo_pool": self.echo_pool
+            }
+        }
 
 # Instância global das configurações
 database_settings = DatabaseSettings() 
