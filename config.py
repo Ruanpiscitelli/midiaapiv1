@@ -11,23 +11,7 @@ import torch
 # Carrega variáveis de ambiente
 load_dotenv()
 
-# Diretórios base
-BASE_DIR = Path(__file__).resolve().parent
-MODELS_DIR = BASE_DIR / "models"
-TEMP_DIR = BASE_DIR / "temp"
-
-# Caminhos específicos
-SDXL_LOCAL_PATH = MODELS_DIR / "sdxl"
-VIDEO_TEMP_DIR = TEMP_DIR / "video"
-FISH_SPEECH_MODEL_PATH = MODELS_DIR / "fish_speech"
-
-# Configurações da API
-API_VERSION = "2.0"
-API_TITLE = "Gerador de Vídeos com IA"
-API_KEY = os.getenv("API_KEY", "minha-chave-api")
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-
-# Configurações de logging
+# Configurações de logging primeiro
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -55,9 +39,30 @@ LOGGING_CONFIG = {
     }
 }
 
-# Configurar logging
+# Configura logging
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
+
+# Diretórios base
+BASE_DIR = Path(__file__).resolve().parent
+MODELS_DIR = BASE_DIR / "models"
+TEMP_DIR = BASE_DIR / "temp"
+
+# Caminhos específicos
+SDXL_LOCAL_PATH = MODELS_DIR / "sdxl"
+SDXL_MODEL_PATH = os.getenv("SDXL_MODEL_PATH", "stabilityai/stable-diffusion-xl-base-1.0")
+VIDEO_TEMP_DIR = TEMP_DIR / "video"
+FISH_SPEECH_MODEL_PATH = MODELS_DIR / "fish_speech"
+
+# Configurações da API
+API_VERSION = "2.0"
+API_TITLE = "Gerador de Vídeos com IA"
+API_KEY = os.getenv("API_KEY", "minha-chave-api")
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+# Configurações de hardware
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+NUM_GPUS = torch.cuda.device_count() if torch.cuda.is_available() else 0
 
 # Configurações do MinIO
 MINIO_CONFIG = {
@@ -90,12 +95,18 @@ MINIO_CONFIG = {
     
     # Cache de credenciais
     "credentials_cache_time": 3600,  # 1 hora
-    "auto_renew_credentials": True
+    "auto_renew_credentials": True,
+    
+    # Adicionar configurações que podem estar faltando
+    "download_url_expiry": 3600,  # Tempo de expiração para URLs de download
+    "upload_url_expiry": 3600,    # Tempo de expiração para URLs de upload
+    "multipart_threshold": 1024 * 1024 * 64,  # 64MB para upload multipart
+    "max_pool_connections": 10,    # Máximo de conexões simultâneas
 }
 
 # Configurações do SDXL
 SDXL_CONFIG = {
-    "model_path": os.getenv("SDXL_MODEL_PATH", "stabilityai/stable-diffusion-xl-base-1.0"),
+    "model_path": SDXL_MODEL_PATH,
     "local_path": SDXL_LOCAL_PATH,
     "vae_path": "madebyollin/sdxl-vae-fp16-fix",
     

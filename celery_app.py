@@ -15,6 +15,7 @@ from config import CELERY_CONFIG
 import logging
 from redis import Redis
 from loguru import logger
+import torch
 
 # Configuração de logging
 logger = logging.getLogger(__name__)
@@ -46,9 +47,10 @@ app.conf.update(
 )
 
 # Configurações específicas para tarefas de GPU
+gpu_available = torch.cuda.is_available()
 app.conf.task_routes = {
-    'tasks.generate_image_task': {'queue': 'gpu'},
-    'tasks.generate_tts_task': {'queue': 'gpu'},
+    'tasks.generate_image_task': {'queue': 'gpu' if gpu_available else 'cpu'},
+    'tasks.generate_tts_task': {'queue': 'gpu' if gpu_available else 'cpu'},
     'tasks.generate_video_task': {'queue': 'cpu'}
 }
 

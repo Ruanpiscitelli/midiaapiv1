@@ -291,10 +291,7 @@ def main():
     logger.info("Iniciando download dos modelos...")
     
     try:
-        # Verifica CUDA
         verify_cuda()
-        
-        # Cria diretórios
         create_directories()
         
         # Instala dependências
