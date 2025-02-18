@@ -46,11 +46,11 @@ class SDXLModel:
             logger.info(f"Diretório temporário criado: {self.temp_dir}")
             
             # Configurações do modelo
-            self.width = SDXL_CONFIG["width"]
-            self.height = SDXL_CONFIG["height"]
-            self.steps = SDXL_CONFIG["num_inference_steps"]
-            self.guidance_scale = SDXL_CONFIG["guidance_scale"]
-            self.negative_prompt = SDXL_CONFIG["negative_prompt"]
+            self.width = SDXL_CONFIG.width
+            self.height = SDXL_CONFIG.height
+            self.steps = SDXL_CONFIG.num_inference_steps
+            self.guidance_scale = SDXL_CONFIG.guidance_scale
+            self.negative_prompt = SDXL_CONFIG.negative_prompt
             
             # Carrega o modelo
             self._load_model()
@@ -70,9 +70,9 @@ class SDXLModel:
             # Carrega o modelo
             self.pipe = DiffusionPipeline.from_pretrained(
                 model_path,
-                torch_dtype=torch.float16,
+                torch_dtype=torch.float16 if SDXL_CONFIG.use_fp16 else torch.float32,
                 use_safetensors=True,
-                variant="fp16"
+                variant="fp16" if SDXL_CONFIG.use_fp16 else None
             )
 
             # Move para GPU se disponível
@@ -87,6 +87,18 @@ class SDXLModel:
                 # Habilita otimização de memória
                 if hasattr(self.pipe, 'enable_model_cpu_offload'):
                     self.pipe.enable_model_cpu_offload()
+
+                # Habilita VAE tiling se configurado
+                if SDXL_CONFIG.enable_vae_tiling:
+                    self.pipe.vae.enable_tiling()
+
+                # Compila o modelo se configurado
+                if SDXL_CONFIG.torch_compile and hasattr(torch, 'compile'):
+                    self.pipe.unet = torch.compile(
+                        self.pipe.unet, 
+                        mode="reduce-overhead", 
+                        fullgraph=True
+                    )
 
             logger.info("Modelo SDXL carregado com sucesso!")
             
@@ -389,9 +401,9 @@ def set_model_config(config: dict) -> None:
 
 def generate_image(
     prompt: str,
-    width: int = SDXL_CONFIG["width"],
-    height: int = SDXL_CONFIG["height"],
-    steps: int = SDXL_CONFIG["num_inference_steps"],
+    width: int = SDXL_CONFIG.width,
+    height: int = SDXL_CONFIG.height,
+    steps: int = SDXL_CONFIG.num_inference_steps,
     seed: Optional[int] = None
 ) -> Optional[Path]:
     """

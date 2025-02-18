@@ -25,6 +25,10 @@ NUM_GPUS = models_settings.num_gpus
 SDXL_CONFIG = models_settings.sdxl
 FISH_SPEECH_CONFIG = models_settings.fish_speech
 
+# Adiciona os caminhos do modelo SDXL
+SDXL_MODEL_PATH = SDXL_CONFIG.model_path  # Caminho do modelo online (HuggingFace)
+SDXL_LOCAL_PATH = SDXL_CONFIG.local_path  # Caminho local do modelo
+
 # Re-exporta configurações de cache
 CACHE_CONFIG = {
     "REDIS_URL": cache_settings.REDIS_URL,
