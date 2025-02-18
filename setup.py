@@ -114,40 +114,43 @@ def setup_virtual_env() -> bool:
         # Determina o pip do ambiente virtual
         pip_path = VENV_DIR / "bin" / "pip" if os.name != "nt" else VENV_DIR / "Scripts" / "pip.exe"
         
-        # Instala e atualiza pip e setuptools primeiro
+        # Atualiza pip, setuptools e wheel primeiro
+        logger.info("Atualizando ferramentas básicas...")
         subprocess.run([str(pip_path), "install", "--upgrade", "pip", "setuptools", "wheel"], check=True)
         
-        # Desinstala versões anteriores do torch e relacionados
+        # Limpa cache do pip
+        logger.info("Limpando cache do pip...")
+        subprocess.run([str(pip_path), "cache", "purge"], check=True)
+        
+        # Desinstala versões anteriores
+        logger.info("Removendo versões anteriores do PyTorch...")
         subprocess.run([str(pip_path), "uninstall", "-y", "torch", "torchvision", "torchaudio"], check=True)
         
-        # Instala torch e cuda ANTES de outras dependências
-        logger.info("Instalando PyTorch com suporte CUDA...")
+        # Instala PyTorch com versões específicas
+        logger.info("Instalando PyTorch...")
         torch_install = subprocess.run([
-            str(pip_path), 
-            "install", 
+            str(pip_path),
+            "install",
             "--no-cache-dir",
             "torch==2.2.0",
             "torchvision==0.17.0",
             "torchaudio==2.2.0",
-            "--index-url", 
+            "--index-url",
             "https://download.pytorch.org/whl/cu121"
         ], check=True)
         
-        if torch_install.returncode != 0:
-            logger.error("Falha ao instalar PyTorch!")
-            return False
-            
-        # Verifica se torch foi instalado
+        # Verifica a instalação
         try:
-            subprocess.run([sys.executable, "-c", "import torch"], check=True)
+            subprocess.run([
+                str(VENV_DIR / "bin" / "python"),
+                "-c",
+                "import torch; print(f'PyTorch {torch.__version__} instalado com sucesso!')"
+            ], check=True)
+            return True
         except subprocess.CalledProcessError:
             logger.error("PyTorch não foi instalado corretamente!")
             return False
             
-        # Depois instala o resto das dependências
-        subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
-        
-        return True
     except Exception as e:
         logger.error(f"Erro ao configurar ambiente virtual: {str(e)}")
         return False
