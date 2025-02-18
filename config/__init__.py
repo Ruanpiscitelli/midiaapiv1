@@ -8,6 +8,7 @@ from .models import models_settings
 from .cache import cache_settings, rate_limit_settings
 from .minio import MinioSettings
 from .video import video_settings
+from .database import database_settings
 
 # Re-exporta configurações principais
 API_VERSION = base_settings.API_VERSION
@@ -141,6 +142,35 @@ VIDEO_CONFIG = {
     
     # Configurações de threads
     "threads": video_settings.threads
+}
+
+# Re-exporta configurações do banco de dados
+DATABASE_CONFIG = {
+    # Configurações de conexão
+    "host": database_settings.host,
+    "port": database_settings.port,
+    "database": database_settings.database,
+    "username": database_settings.username,
+    "password": database_settings.password,
+    "url": database_settings.url,
+    
+    # Configurações do pool
+    "pool_size": database_settings.pool_size,
+    "max_overflow": database_settings.max_overflow,
+    "pool_timeout": database_settings.pool_timeout,
+    "pool_recycle": database_settings.pool_recycle,
+    
+    # Configurações de timeout
+    "connect_timeout": database_settings.connect_timeout,
+    "command_timeout": database_settings.command_timeout,
+    
+    # Configurações de SSL
+    "ssl_mode": database_settings.ssl_mode,
+    "ssl_cert": database_settings.ssl_cert,
+    
+    # Configurações de debug
+    "echo": database_settings.echo,
+    "echo_pool": database_settings.echo_pool
 }
 
 # Valida diretórios na inicialização
