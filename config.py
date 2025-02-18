@@ -321,6 +321,30 @@ VIDEO_CONFIG = {
 # Garante que o diretório de cache existe
 Path(VIDEO_CONFIG["cache_dir"]).mkdir(parents=True, exist_ok=True)
 
+# Configurações do banco de dados
+DATABASE_CONFIG = {
+    "url": "sqlite:///db/logs.db",
+    "pool_size": 5,
+    "max_overflow": 10,
+    "pool_timeout": 30,
+    "pool_recycle": 1800,
+    "connect_args": {
+        "check_same_thread": False,  # Necessário para FastAPI
+        "timeout": 30
+    },
+    "echo": DEBUG,  # Log de SQL apenas em modo debug
+    "auto_migrate": True,  # Executa migrações automaticamente
+    "backup": {
+        "enabled": True,
+        "interval": 86400,  # 24 horas
+        "keep_days": 7,
+        "backup_dir": str(BASE_DIR / "backups")
+    }
+}
+
+# Garante que o diretório de backup existe
+Path(DATABASE_CONFIG["backup"]["backup_dir"]).mkdir(parents=True, exist_ok=True)
+
 # Adicionar novas configurações
 SYSTEM_CONFIG = {
     "environment": os.getenv("ENVIRONMENT", "development"),
