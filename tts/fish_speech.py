@@ -25,27 +25,20 @@ class FishSpeechTTS:
         """Inicializa configurações básicas sem carregar o modelo."""
         # Configurações básicas
         self.device = torch.device(MODELS_CONFIG["device"])
-        self.model_dir = Path(MODELS_CONFIG["fish_speech_model_path"])
-        self.voice_dir = Path(MODELS_CONFIG["fish_speech_voice_dir"])
-        self.custom_voice_dir = Path(MODELS_CONFIG["fish_speech_custom_voice_dir"])
+        self.model_dir = Path(MODELS_CONFIG["fish_speech"]["model_path"])
+        self.voice_dir = Path(MODELS_CONFIG["fish_speech"]["voice_dir"])
+        self.custom_voice_dir = Path(MODELS_CONFIG["fish_speech"]["custom_voice_dir"])
         
         # Configurações do modelo
-        self.sample_rate = 22050
-        self.max_text_length = 2000
-        self.temperature = 0.8
-        self.use_half = True
-        self.use_compile = True
+        self.sample_rate = MODELS_CONFIG["fish_speech"]["sample_rate"]
+        self.max_text_length = MODELS_CONFIG["fish_speech"]["max_text_length"]
+        self.temperature = MODELS_CONFIG["fish_speech"]["temperature"]
+        self.use_half = MODELS_CONFIG["fish_speech"]["use_half"]
+        self.use_compile = MODELS_CONFIG["fish_speech"]["use_compile"]
         
         # Configurações de idiomas e vozes
-        self.supported_languages = [
-            "en-US", "zh-CN", "de-DE", "ja-JP",
-            "fr-FR", "es-ES", "ko-KR", "ar-SA",
-            "pt-BR", "it-IT", "ru-RU", "hi-IN"
-        ]
-        self.available_voices = [
-            "male_1", "male_2", "female_1", "female_2",
-            "child_1", "elder_1", "neutral_1"
-        ]
+        self.supported_languages = MODELS_CONFIG["fish_speech"]["supported_languages"]
+        self.available_voices = MODELS_CONFIG["fish_speech"]["available_voices"]
         
         # Inicializa atributos
         self.model = None
@@ -76,7 +69,7 @@ class FishSpeechTTS:
             Path: Caminho para o arquivo do modelo
         """
         # Tenta obter da configuração
-        model_path = Path(MODELS_CONFIG["fish_speech_model_path"]) / "model.pth"
+        model_path = Path(MODELS_CONFIG["fish_speech"]["model_path"]) / "model.pth"
         if model_path.exists():
             logger.info(f"Usando modelo configurado em: {model_path}")
             return model_path
@@ -115,7 +108,7 @@ class FishSpeechTTS:
             if not self.model_path.exists():
                 raise FileNotFoundError(
                     f"Modelo não encontrado em: {self.model_path}\n"
-                    "Configure MODELS_CONFIG['fish_speech_model_path'] ou "
+                    "Configure MODELS_CONFIG['fish_speech']['model_path'] ou "
                     "coloque o modelo em um dos caminhos padrão."
                 )
             

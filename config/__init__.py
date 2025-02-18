@@ -27,9 +27,15 @@ TEMP_DIR = base_settings.TEMP_DIR
 # Re-exporta configurações de modelos
 DEVICE = models_settings.device
 NUM_GPUS = models_settings.num_gpus
+
+# Configurações específicas dos modelos
 SDXL_CONFIG = models_settings.get_sdxl_config()
 FISH_SPEECH_CONFIG = models_settings.get_fish_speech_config()
+
+# Configuração geral dos modelos (inclui todas as configurações)
 MODELS_CONFIG = models_settings.get_config()
+
+# Caminhos específicos dos modelos
 SDXL_MODEL_PATH = models_settings.get_sdxl_model_path()
 SDXL_LOCAL_PATH = SDXL_CONFIG["local_path"]
 
