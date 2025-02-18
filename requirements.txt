@@ -2,7 +2,8 @@
 fastapi>=0.109.2             # Framework web rápido e moderno
 uvicorn>=0.27.1             # Servidor ASGI de alta performance
 python-multipart==0.0.9     # Suporte para upload de arquivos
-pydantic==2.6.1             # Validação de dados e configurações
+pydantic>=2.6.1             # Validação de dados e configurações
+pydantic-settings>=2.7.1    # Configurações baseadas em Pydantic
 python-dotenv>=1.0.0
 setuptools>=69.0.2          # Necessário para Python 3.12
 
@@ -51,4 +52,4 @@ wheel>=0.42.0              # Necessário para Python 3.12
 
 # Novas dependências
 fastapi-cache2>=0.2.1
-slowapi>=0.1.8 
+slowapi>=0.1.8

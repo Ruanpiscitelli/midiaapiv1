@@ -3,6 +3,7 @@ Configurações dos modelos de IA usando Pydantic.
 """
 
 from typing import Dict, Any, List
+from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
@@ -50,6 +51,21 @@ class FishSpeechConfig(BaseModel):
         "child_1", "elder_1", "neutral_1"
     ]
 
+class StorageConfig(BaseModel):
+    """Configurações de armazenamento."""
+    storage_type: str = "minio"
+    minio_endpoint: str = os.getenv("MINIO_ENDPOINT", "minio:9000")
+    minio_access_key: str = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+    minio_secret_key: str = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+    minio_bucket: str = os.getenv("MINIO_BUCKET", "arquivosapi")
+    minio_secure: bool = os.getenv("MINIO_SECURE", "false").lower() == "true"
+
+class SecurityConfig(BaseModel):
+    """Configurações de segurança."""
+    api_key: str = os.getenv("API_KEY", "seu-token-secreto")
+    secret_key: str = os.getenv("SECRET_KEY", "chave-secreta-para-jwt")
+    hf_token: str = os.getenv("HF_TOKEN", "")
+
 class ModelsSettings(BaseSettings):
     """Configurações gerais dos modelos."""
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
@@ -58,8 +74,14 @@ class ModelsSettings(BaseSettings):
     # Configurações específicas
     sdxl: SDXLConfig = SDXLConfig()
     fish_speech: FishSpeechConfig = FishSpeechConfig()
+    storage: StorageConfig = StorageConfig()
+    security: SecurityConfig = SecurityConfig()
     
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False
+    )
     
     def validate_paths(self) -> None:
         """Valida e cria diretórios necessários."""
