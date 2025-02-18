@@ -14,54 +14,73 @@ import uuid
 from loguru import logger
 from torch.cuda import amp
 
-from config import FISH_SPEECH_CONFIG
+from config import FISH_SPEECH_CONFIG, MODELS_CONFIG
 from storage.minio_client import upload_file
 
 class FishSpeechTTS:
     """Classe otimizada para síntese de voz usando Fish Speech."""
     
     def __init__(self):
-        """Inicializa o modelo com otimizações."""
-        try:
-            # Configurações básicas
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.config = FISH_SPEECH_CONFIG
-            self.model_dir = Path(self.config["model_path"])
-            
-            # Carrega modelo
-            self._load_base_model()
-            
-            # Cache de vozes
-            self.loaded_voices: Dict[str, torch.Tensor] = {}
-            
-            logger.info(f"Fish Speech V{self.config['version']} inicializado no {self.device}")
-            
-        except Exception as e:
-            logger.error(f"Erro na inicialização: {str(e)}")
-            raise
+        """
+        Inicializa o FishSpeechTTS com configurações do modelo
+        """
+        self.model = None
+        self.model_path = self._get_model_path()
+        self._load_base_model()
+        
+        # Cache de vozes
+        self.loaded_voices: Dict[str, torch.Tensor] = {}
+        
+        logger.info(f"Fish Speech V{self.config['version']} inicializado no {self.device}")
 
-    def _load_base_model(self) -> None:
-        """Carrega e otimiza o modelo base."""
+    def _get_model_path(self) -> Path:
+        """
+        Obtém o caminho do modelo, primeiro checando a configuração,
+        depois o caminho padrão
+        
+        Returns:
+            Path: Caminho para o arquivo do modelo
+        """
+        # Tenta obter da configuração
+        config_path = MODELS_CONFIG.get("fish_speech_model_path")
+        if config_path:
+            path = Path(config_path)
+            if path.exists():
+                return path
+                
+        # Tenta caminhos padrão
+        default_paths = [
+            Path("/workspace/midiaapiv1/models/fish_speech/model.pth"),
+            Path("models/fish_speech/model.pth"),
+            Path(os.path.expanduser("~/.cache/fish_speech/model.pth"))
+        ]
+        
+        for path in default_paths:
+            if path.exists():
+                return path
+                
+        # Se nenhum caminho funcionar, usa o primeiro padrão
+        logger.warning(f"Modelo não encontrado nos caminhos padrão: {default_paths}")
+        return default_paths[0]
+    
+    def _load_base_model(self):
+        """
+        Carrega o modelo base, com tratamento de erro apropriado
+        """
         try:
-            model_path = self.model_dir / "model.pth"
-            
-            # Carrega modelo
-            self.model = torch.jit.load(model_path)
-            self.model.to(self.device)
-            self.model.eval()
-            
-            # Otimizações
-            if torch.cuda.is_available():
-                if self.config["use_half"]:
-                    self.model = self.model.half()
-                if self.config["use_compile"]:
-                    self.model = torch.compile(self.model)
-                    
-            logger.info("Modelo base carregado e otimizado")
+            if not self.model_path.exists():
+                raise FileNotFoundError(
+                    f"Arquivo do modelo não encontrado em: {self.model_path}\n"
+                    "Por favor, configure MODELS_CONFIG['fish_speech_model_path'] "
+                    "ou coloque o modelo em um dos caminhos padrão."
+                )
+                
+            self.model = torch.jit.load(self.model_path)
+            logger.info(f"Modelo carregado com sucesso de: {self.model_path}")
             
         except Exception as e:
-            logger.error(f"Erro ao carregar modelo: {str(e)}")
-            raise
+            logger.error(f"Erro ao carregar modelo FishSpeech: {e}")
+            raise RuntimeError("Falha ao inicializar FishSpeechTTS") from e
 
     @torch.no_grad()
     @amp.autocast(enabled=True)

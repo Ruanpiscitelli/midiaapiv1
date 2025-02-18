@@ -225,3 +225,8 @@ for directory in DIRECTORIES_TO_CREATE:
 logger.info(f"Iniciando aplicação {API_TITLE} v{API_VERSION}")
 logger.info(f"Modo DEBUG: {DEBUG}")
 logger.info(f"Device: {'CUDA' if torch.cuda.is_available() else 'CPU'}")
+
+MODELS_CONFIG = {
+    "fish_speech_model_path": os.getenv("FISH_SPEECH_MODEL_PATH", ""),
+    # ... outras configurações de modelo ...
+}
