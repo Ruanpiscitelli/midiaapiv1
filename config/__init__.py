@@ -6,6 +6,7 @@ Exporta todas as configurações de forma organizada.
 from .base import base_settings
 from .models import models_settings
 from .cache import cache_settings, rate_limit_settings
+from .minio import MinioSettings
 
 # Re-exporta configurações principais
 API_VERSION = base_settings.API_VERSION
@@ -28,6 +29,16 @@ FISH_SPEECH_CONFIG = models_settings.fish_speech
 # Adiciona os caminhos do modelo SDXL
 SDXL_MODEL_PATH = SDXL_CONFIG.model_path  # Caminho do modelo online (HuggingFace)
 SDXL_LOCAL_PATH = SDXL_CONFIG.local_path  # Caminho local do modelo
+
+# Re-exporta configurações do MinIO
+minio_settings = MinioSettings()
+MINIO_CONFIG = {
+    "url": minio_settings.url,
+    "access_key": minio_settings.access_key,
+    "secret_key": minio_settings.secret_key,
+    "api": minio_settings.api,
+    "path": minio_settings.path
+}
 
 # Re-exporta configurações de cache
 CACHE_CONFIG = {
