@@ -176,6 +176,42 @@ def get_presigned_url(object_name: str, expires_in: int = 3600) -> Optional[str]
         logger.error(f"Erro ao gerar URL pré-assinada: {str(e)}")
         return None
 
+@retry(
+    stop=stop_after_attempt(MINIO_CONFIG["max_retries"]),
+    wait=wait_exponential(multiplier=MINIO_CONFIG["retry_delay"], min=1, max=10)
+)
+def download_file(object_name: str, dest_path: str | Path) -> bool:
+    """
+    Download de arquivo do MinIO.
+    
+    Args:
+        object_name: Nome do arquivo no MinIO
+        dest_path: Caminho local para salvar o arquivo
+        
+    Returns:
+        bool: True se o download foi bem sucedido, False caso contrário
+    """
+    try:
+        client = get_minio_client()
+        if not client:
+            raise RuntimeError("Cliente MinIO não disponível")
+            
+        dest_path = Path(dest_path)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        client.fget_object(
+            bucket_name=MINIO_CONFIG["bucket_name"],
+            object_name=object_name,
+            file_path=str(dest_path)
+        )
+        return True
+        
+    except Exception as e:
+        logger.error(f"Erro no download: {e}")
+        if "token expired" in str(e).lower():
+            minio_credentials.last_update = 0
+        return False
+
 # Inicialização
 if not ensure_bucket():
     logger.warning("Não foi possível garantir a existência do bucket")
