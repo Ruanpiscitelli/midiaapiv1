@@ -212,6 +212,47 @@ def download_file(object_name: str, dest_path: str | Path) -> bool:
             minio_credentials.last_update = 0
         return False
 
+@retry(
+    stop=stop_after_attempt(MINIO_CONFIG["max_retries"]),
+    wait=wait_exponential(multiplier=MINIO_CONFIG["retry_delay"], min=1, max=10)
+)
+def delete_file(object_name: str) -> bool:
+    """
+    Remove um arquivo do MinIO.
+    
+    Args:
+        object_name: Nome do arquivo no MinIO
+        
+    Returns:
+        bool: True se o arquivo foi deletado com sucesso, False caso contrário
+    """
+    try:
+        client = get_minio_client()
+        if not client:
+            raise RuntimeError("Cliente MinIO não disponível")
+            
+        # Verifica se o objeto existe antes de tentar deletar
+        try:
+            client.stat_object(MINIO_CONFIG["bucket_name"], object_name)
+        except Exception:
+            logger.warning(f"Arquivo {object_name} não encontrado")
+            return False
+            
+        # Remove o objeto
+        client.remove_object(
+            bucket_name=MINIO_CONFIG["bucket_name"],
+            object_name=object_name
+        )
+        
+        logger.info(f"Arquivo {object_name} deletado com sucesso")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Erro ao deletar arquivo: {e}")
+        if "token expired" in str(e).lower():
+            minio_credentials.last_update = 0
+        return False
+
 # Inicialização
 if not ensure_bucket():
     logger.warning("Não foi possível garantir a existência do bucket")
