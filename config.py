@@ -72,18 +72,24 @@ FISH_SPEECH_CONFIG = {
 
 # Configurações do MinIO
 MINIO_CONFIG = {
-    # Endpoint para conexão do cliente MinIO (apenas host:porta)
-    "endpoint": os.getenv("MINIO_ENDPOINT", "minio.ruanpiscitelli.com"),  # Sem path
-    "access_key": os.getenv("MINIO_ACCESS_KEY", "minioadmin"),
-    "secret_key": os.getenv("MINIO_SECRET_KEY", "minioadmin"),
-    "secure": os.getenv("MINIO_SECURE", "False").lower() == "true",
-    "bucket_name": os.getenv("MINIO_BUCKET", "media-bucket"),
-    "presigned_url_expiry": 3600,  # URLs pré-assinadas expiram em 1 hora
+    # Endpoint sem path e com porta padrão
+    "endpoint": os.getenv("MINIO_ENDPOINT", "minio.ruanpiscitelli.com:9000"),
     
-    # Configurações para URLs públicas
-    "api_host": os.getenv("MINIO_API_HOST", "minio.ruanpiscitelli.com"),  # Host para URLs públicas
-    "api_path": os.getenv("MINIO_API_PATH", "/api/v1"),  # Path para URLs públicas
-    "api_secure": os.getenv("MINIO_API_SECURE", "True").lower() == "true"  # HTTPS para URLs públicas
+    # Credenciais fornecidas
+    "access_key": os.getenv("MINIO_ACCESS_KEY", "ts4Xv4Oa01o9HyfujRnH"),
+    "secret_key": os.getenv("MINIO_SECRET_KEY", "BAAp2IWeyR6gVREoxeZMWVbmQM9B7VbuC4U3YHpN"),
+    
+    # Configurações de segurança
+    "secure": True,  # Usando HTTPS pois o endpoint é público
+    "bucket_name": os.getenv("MINIO_BUCKET", "media-bucket"),
+    "presigned_url_expiry": 3600,
+    
+    # Configurações de API baseadas no JSON fornecido
+    "api_host": "minio.ruanpiscitelli.com",
+    "api_path": "/api/v1",
+    "api_secure": True,
+    "api_version": "s3v4",  # Versão da API fornecida
+    "region": "auto"  # Path mode auto conforme JSON
 }
 
 # Configurações do Celery

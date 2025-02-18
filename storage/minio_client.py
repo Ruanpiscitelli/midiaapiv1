@@ -6,19 +6,44 @@ from loguru import logger
 from config import MINIO_CONFIG
 from dotenv import load_dotenv
 from pathlib import Path
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv()
 
+def validate_endpoint(endpoint: str) -> str:
+    """Valida e formata o endpoint do MinIO."""
+    if not endpoint:
+        raise ValueError("Endpoint não pode ser vazio")
+        
+    # Remove protocolo se presente
+    if "://" in endpoint:
+        endpoint = endpoint.split("://")[1]
+        
+    # Adiciona porta padrão se não especificada
+    if ":" not in endpoint:
+        endpoint = f"{endpoint}:9000"
+        
+    return endpoint
+
 # Usar configurações do config.py
 try:
+    endpoint = validate_endpoint(MINIO_CONFIG["endpoint"])
     minio_client = Minio(
-        endpoint=MINIO_CONFIG["endpoint"],  # Apenas host:porta
+        endpoint=endpoint,
         access_key=MINIO_CONFIG["access_key"],
         secret_key=MINIO_CONFIG["secret_key"],
         secure=MINIO_CONFIG["secure"],
-        region='auto'
+        region=MINIO_CONFIG["region"],
+        api_version=MINIO_CONFIG["api_version"]
     )
-    logger.info(f"Cliente MinIO inicializado com endpoint: {MINIO_CONFIG['endpoint']}")
+    logger.info(f"Cliente MinIO inicializado com endpoint: {endpoint}")
+    
+    # Verifica a conexão imediatamente
+    if check_minio_connection():
+        logger.info("Conexão com MinIO estabelecida com sucesso")
+    else:
+        raise RuntimeError("Não foi possível estabelecer conexão com MinIO")
+        
 except Exception as e:
     logger.error(f"Erro ao inicializar cliente MinIO: {str(e)}")
     raise
@@ -31,6 +56,21 @@ def ensure_bucket_exists():
             logger.info(f"Bucket {MINIO_CONFIG['bucket_name']} criado com sucesso")
     except Exception as e:
         logger.error(f"Erro ao verificar/criar bucket: {str(e)}")
+
+def build_public_url(object_name: str) -> str:
+    """Constrói URL pública para um objeto."""
+    protocol = "https" if MINIO_CONFIG["api_secure"] else "http"
+    host = MINIO_CONFIG["api_host"].rstrip("/")
+    path = MINIO_CONFIG["api_path"].strip("/")
+    bucket = MINIO_CONFIG["bucket_name"]
+    
+    # Constrói a URL seguindo o formato do endpoint fornecido
+    parts = [f"{protocol}://{host}"]
+    if path:
+        parts.append(path)
+    parts.extend([bucket, object_name])
+    
+    return "/".join(parts)
 
 def upload_file(file_path: str | Path, object_name: str) -> str:
     """
@@ -54,10 +94,7 @@ def upload_file(file_path: str | Path, object_name: str) -> str:
             file_path=str(file_path)  # MinIO espera string
         )
         
-        # Construindo a URL pública com o path da API
-        protocol = "https" if MINIO_CONFIG["api_secure"] else "http"
-        api_path = MINIO_CONFIG["api_path"].rstrip("/")  # Remove trailing slash
-        return f"{protocol}://{MINIO_CONFIG['api_host']}{api_path}/{MINIO_CONFIG['bucket_name']}/{object_name}"
+        return build_public_url(object_name)
         
     except Exception as e:
         logger.error(f"Erro no upload do arquivo: {str(e)}")
@@ -135,16 +172,20 @@ def delete_file(object_name: str):
         logger.error(f"Erro ao deletar arquivo: {str(e)}")
         return False
 
-def check_minio_connection() -> bool:
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
+def check_minio_connection(timeout: int = 5) -> bool:
     """
     Verifica se a conexão com o MinIO está funcionando.
     
+    Args:
+        timeout: Tempo máximo de espera em segundos
+        
     Returns:
         bool: True se a conexão está ok, False caso contrário
     """
     try:
-        # Tenta listar buckets para verificar a conexão
         minio_client.list_buckets()
+        logger.info("Conexão com MinIO estabelecida com sucesso")
         return True
     except Exception as e:
         logger.error(f"Erro ao verificar conexão com MinIO: {str(e)}")

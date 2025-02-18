@@ -44,7 +44,7 @@ python-multipart==0.0.9    # Parsing de form-data
 pillow==10.2.0             # Processamento de imagens
 requests==2.31.0           # Requisições HTTP
 python-magic==0.4.27       # Detecção de tipos MIME
-tenacity==8.2.3            # Retentativas automáticas
+tenacity>=8.2.3            # Retentativas automáticas
 loguru==0.7.2              # Logging avançado
 supervisor==4.2.5          # Gerenciamento de processos
 wheel>=0.42.0              # Necessário para Python 3.12
