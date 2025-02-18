@@ -9,6 +9,7 @@ from .cache import cache_settings, rate_limit_settings
 from .minio import MinioSettings
 from .video import video_settings
 from .database import database_settings
+from .logging import logging_settings
 
 # Re-exporta configurações principais
 API_VERSION = base_settings.API_VERSION
@@ -172,6 +173,9 @@ DATABASE_CONFIG = {
     "echo": database_settings.echo,
     "echo_pool": database_settings.echo_pool
 }
+
+# Re-exporta configurações de logging
+LOGGING_CONFIG = logging_settings.get_config()
 
 # Valida diretórios na inicialização
 models_settings.validate_paths()
