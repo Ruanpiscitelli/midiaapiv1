@@ -61,12 +61,14 @@ SDXL_CONFIG = {
 
 # Configurações do Fish Speech
 FISH_SPEECH_CONFIG = {
-    "model_path": BASE_DIR / "models" / "fish_speech",
+    "model_path": MODELS_DIR / "fish_speech",
     "sample_rate": 22050,
     "max_text_length": 1000,
     "batch_size": 1,
     "temperature": 0.8,
-    "supported_languages": ["pt-BR", "en-US"]
+    "supported_languages": ["pt-BR", "en-US"],
+    "voice_dir": MODELS_DIR / "fish_speech" / "voices",
+    "custom_voice_dir": MODELS_DIR / "fish_speech" / "custom_voices"
 }
 
 # Configurações do MinIO - Simplificadas e à prova de falhas
@@ -158,8 +160,8 @@ DIRECTORIES_TO_CREATE = [
     MODELS_DIR,
     TEMP_DIR,
     VIDEO_CONFIG["temp_dir"],
-    SDXL_LOCAL_PATH,  # Usa o caminho local em vez do HuggingFace
-    FISH_SPEECH_MODEL_PATH,
+    SDXL_LOCAL_PATH,
+    FISH_SPEECH_CONFIG["model_path"],
     FISH_SPEECH_CONFIG["voice_dir"],
     FISH_SPEECH_CONFIG["custom_voice_dir"]
 ]

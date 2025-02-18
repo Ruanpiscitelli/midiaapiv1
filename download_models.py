@@ -71,11 +71,27 @@ MODELS_CONFIG = {
 
 def create_directories():
     """Cria a estrutura de diretórios necessária."""
-    for model_config in MODELS_CONFIG.values():
-        model_config["path"].mkdir(parents=True, exist_ok=True)
-        if "voices" in str(model_config["path"]):
-            (model_config["path"] / "voices").mkdir(exist_ok=True)
-            (model_config["path"] / "custom_voices").mkdir(exist_ok=True)
+    try:
+        # Cria diretórios base
+        MODELS_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Cria diretórios do Fish Speech
+        fish_speech_dirs = [
+            FISH_SPEECH_CONFIG["model_path"],
+            FISH_SPEECH_CONFIG["voice_dir"],
+            FISH_SPEECH_CONFIG["custom_voice_dir"]
+        ]
+        
+        for directory in fish_speech_dirs:
+            directory.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Diretório criado: {directory}")
+            
+        # Cria diretórios do SDXL
+        MODELS_CONFIG["sdxl"]["path"].mkdir(parents=True, exist_ok=True)
+        
+    except Exception as e:
+        logger.error(f"Erro ao criar diretórios: {e}")
+        raise
 
 def download_file_with_progress(url: str, dest_path: Path, desc: str):
     """
@@ -179,15 +195,10 @@ def download_sdxl():
 def download_fish_speech_model():
     """
     Download do modelo Fish Speech V1.4 do Hugging Face.
-    Baseado em: https://github.com/fishaudio/fish-speech/blob/main/docs/en/inference.md
     """
     try:
-        model_dir = Path(FISH_SPEECH_CONFIG["model_path"])
-        model_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Cria subdiretórios
-        (model_dir / "voices").mkdir(exist_ok=True)
-        (model_dir / "custom_voices").mkdir(exist_ok=True)
+        model_dir = FISH_SPEECH_CONFIG["model_path"]
+        voice_dir = FISH_SPEECH_CONFIG["voice_dir"]
         
         # Download do modelo do Hugging Face
         logger.info("Baixando modelo Fish Speech do Hugging Face...")
@@ -210,6 +221,7 @@ def download_fish_speech_model():
                 "tokenizer.json"
             ]
         
+        # Download dos arquivos principais
         for filename in files_to_download:
             output_path = model_dir / filename
             if not output_path.exists():
@@ -229,14 +241,14 @@ def download_fish_speech_model():
                 logger.info(f"{filename} já existe")
         
         # Download da voz padrão
-        voice_path = model_dir / "voices" / "default.pth"
+        voice_path = voice_dir / "default.pth"
         if not voice_path.exists():
             logger.info("Baixando voz padrão...")
             try:
                 hf_hub_download(
                     repo_id=repo_id,
                     filename="voices/default.pth",
-                    local_dir=model_dir,
+                    local_dir=voice_dir.parent,
                     local_dir_use_symlinks=False
                 )
                 logger.info("Voz padrão baixada com sucesso")
@@ -262,14 +274,14 @@ def main():
     """Função principal do script."""
     logger.info("Iniciando download dos modelos...")
     
-    # Verifica CUDA
-    verify_cuda()
-    
-    # Cria diretórios
-    create_directories()
-    
     try:
-        # Instala dependências necessárias
+        # Verifica CUDA
+        verify_cuda()
+        
+        # Cria diretórios
+        create_directories()
+        
+        # Instala dependências
         subprocess.check_call([
             sys.executable, 
             "-m", 
@@ -278,15 +290,13 @@ def main():
             "huggingface_hub"
         ])
         
-        # Download SDXL
-        download_sdxl()
-        
-        # Download Fish Speech
+        # Download dos modelos
         if download_fish_speech_model():
-            logger.info("Modelos baixados com sucesso!")
+            logger.info("Download do Fish Speech concluído com sucesso!")
         else:
-            logger.error("Erro no download dos modelos")
-            sys.exit(1)
+            raise RuntimeError("Falha no download do Fish Speech")
+            
+        logger.info("Todos os modelos foram baixados com sucesso!")
         
     except Exception as e:
         logger.error(f"Erro durante o download dos modelos: {str(e)}")
