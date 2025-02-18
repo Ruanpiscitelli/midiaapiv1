@@ -363,14 +363,18 @@ class HealthCheckResponse(BaseModel):
     dependencies=[Depends(authenticate_api_key)]
 )
 @limiter.limit(RATE_LIMIT_CONFIG["generate_video"]) if limiter else None
-async def generate_video(request: VideoRequest, x_api_key: str = Depends(authenticate_api_key)):
+async def generate_video(
+    request: Request,
+    video_request: VideoRequest,
+    x_api_key: str = Depends(authenticate_api_key)
+):
     """Inicia a geração assíncrona de um vídeo."""
     try:
         job_id = str(uuid.uuid4())
         logger.info(f"Iniciando geração de vídeo - Job ID: {job_id}")
         
-        store_job(job_id, "queued", request.dict())
-        generate_video_task.delay(job_id, request.dict())
+        store_job(job_id, "queued", video_request.dict())
+        generate_video_task.delay(job_id, video_request.dict())
         
         logger.info(f"Job de vídeo enfileirado com sucesso - Job ID: {job_id}")
         return JobResponse(job_id=job_id, status=JobStatus.queued)
@@ -395,7 +399,11 @@ async def generate_video(request: VideoRequest, x_api_key: str = Depends(authent
 )
 @limiter.limit(RATE_LIMIT_CONFIG["status"]) if limiter else None
 @cache(expire=CACHE_CONFIG["CACHE_TIMES"]["status"])
-async def get_job_status_endpoint(job_id: str, x_api_key: str = Depends(authenticate_api_key)):
+async def get_job_status_endpoint(
+    request: Request,
+    job_id: str,
+    x_api_key: str = Depends(authenticate_api_key)
+):
     """Retorna o status atual de um job."""
     try:
         logger.info(f"Consultando status do job: {job_id}")
@@ -501,12 +509,17 @@ async def get_job_result(job_id: str):
     summary="Gera uma imagem com Stable Diffusion XL",
     dependencies=[Depends(authenticate_api_key)]
 )
-async def generate_image(request: ImageRequest):
+@limiter.limit(RATE_LIMIT_CONFIG["generate_image"]) if limiter else None
+async def generate_image(
+    request: Request,
+    image_request: ImageRequest,
+    x_api_key: str = Depends(authenticate_api_key)
+):
     """Inicia a geração assíncrona de uma imagem."""
     try:
         job_id = str(uuid.uuid4())
-        store_job(job_id, "queued", request.dict())
-        generate_image_task.delay(job_id, request.dict())
+        store_job(job_id, "queued", image_request.dict())
+        generate_image_task.delay(job_id, image_request.dict())
         
         return JobResponse(
             job_id=job_id,
@@ -533,15 +546,18 @@ async def generate_image(request: ImageRequest):
     A voz clonada pode ser usada posteriormente para síntese de fala.
     """
 )
+@limiter.limit(RATE_LIMIT_CONFIG["clone_voice"]) if limiter else None
 async def clone_voice(
-    request: VoiceCloneRequest,
+    request: Request,
+    clone_request: VoiceCloneRequest,
     x_api_key: str = Depends(authenticate_api_key)
 ):
     """
     Clona uma voz a partir de uma amostra de áudio.
     
     Args:
-        request: Dados para clonagem de voz
+        request: Request object para rate limiting
+        clone_request: Dados para clonagem de voz
         x_api_key: Chave de API para autenticação
         
     Returns:
@@ -551,12 +567,12 @@ async def clone_voice(
     store_job(job_id, "queued")
     
     # Dispara tarefa assíncrona para clonar a voz
-    clone_voice_task.delay(job_id, request.dict())
+    clone_voice_task.delay(job_id, clone_request.dict())
     
     return {
         "job_id": job_id,
         "status": "queued",
-        "voice_used": request.voice_name,
+        "voice_used": clone_request.voice_name,
         "estimated_duration": None
     }
 
@@ -569,26 +585,31 @@ async def clone_voice(
     summary="Gera áudio a partir de texto",
     dependencies=[Depends(authenticate_api_key)]
 )
-async def generate_tts(request: TTSRequest):
+@limiter.limit(RATE_LIMIT_CONFIG["generate_tts"]) if limiter else None
+async def generate_tts(
+    request: Request,
+    tts_request: TTSRequest,
+    x_api_key: str = Depends(authenticate_api_key)
+):
     """Inicia a geração assíncrona de áudio TTS."""
     try:
         job_id = str(uuid.uuid4())
-        store_job(job_id, "queued", request.dict())
+        store_job(job_id, "queued", tts_request.dict())
         
         # Estima duração baseado no número de palavras
-        words = len(request.text.split())
+        words = len(tts_request.text.split())
         estimated_duration = (words / 150) * 60  # ~150 palavras por minuto
         
         # Se tem URL de amostra, primeiro clona a voz
-        if request.voice_sample_url:
-            clone_voice_task.delay(job_id, request.voice_sample_url)
+        if tts_request.voice_sample_url:
+            clone_voice_task.delay(job_id, tts_request.voice_sample_url)
             
-        generate_tts_task.delay(job_id, request.dict())
+        generate_tts_task.delay(job_id, tts_request.dict())
         
         return TTSResponse(
             job_id=job_id,
             status=JobStatus.queued,
-            voice_used=request.voice,
+            voice_used=tts_request.voice,
             estimated_duration=estimated_duration
         )
         
@@ -611,12 +632,14 @@ async def generate_tts(request: TTSRequest):
 @limiter.limit(RATE_LIMIT_CONFIG["voices"]) if limiter else None
 @cache(expire=CACHE_CONFIG["CACHE_TIMES"]["voices"])
 async def list_voices(
+    request: Request,
     x_api_key: str = Depends(authenticate_api_key)
 ):
     """
     Lista todas as vozes disponíveis no sistema.
     
     Args:
+        request: Request object para rate limiting
         x_api_key: Chave de API para autenticação
         
     Returns:
@@ -662,7 +685,7 @@ async def get_movies_status(project_id: str, x_api_key: str = Depends(authentica
 )
 @limiter.limit(RATE_LIMIT_CONFIG["health"]) if limiter else None
 @cache(expire=CACHE_CONFIG["CACHE_TIMES"]["health"])
-async def health_check():
+async def health_check(request: Request):
     """Retorna o status geral do sistema e suas dependências."""
     from datetime import datetime
     import psutil
