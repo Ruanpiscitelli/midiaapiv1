@@ -70,26 +70,17 @@ FISH_SPEECH_CONFIG = {
     "real_time_factor": 5  # ~5 segundos de processamento por segundo de áudio
 }
 
-# Configurações do MinIO
+# Configurações do MinIO - Simplificadas e à prova de falhas
 MINIO_CONFIG = {
-    # Endpoint sem path e com porta padrão
-    "endpoint": os.getenv("MINIO_ENDPOINT", "minio.ruanpiscitelli.com:9000"),
-    
-    # Credenciais fornecidas
+    # Configurações essenciais
+    "endpoint": os.getenv("MINIO_ENDPOINT", "minio.ruanpiscitelli.com").split("://")[-1],  # Remove protocolo se presente
     "access_key": os.getenv("MINIO_ACCESS_KEY", "ts4Xv4Oa01o9HyfujRnH"),
     "secret_key": os.getenv("MINIO_SECRET_KEY", "BAAp2IWeyR6gVREoxeZMWVbmQM9B7VbuC4U3YHpN"),
-    
-    # Configurações de segurança
-    "secure": True,  # Usando HTTPS pois o endpoint é público
+    "secure": True,  # Sempre usar HTTPS em produção
     "bucket_name": os.getenv("MINIO_BUCKET", "media-bucket"),
-    "presigned_url_expiry": 3600,
     
-    # Configurações de API baseadas no JSON fornecido
-    "api_host": "minio.ruanpiscitelli.com",
-    "api_path": "/api/v1",
-    "api_secure": True,
-    "api_version": "s3v4",  # Versão da API fornecida
-    "region": "auto"  # Path mode auto conforme JSON
+    # URL base para arquivos públicos
+    "public_url_base": "https://minio.ruanpiscitelli.com/api/v1"
 }
 
 # Configurações do Celery
