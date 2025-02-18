@@ -13,8 +13,8 @@ flower==2.0.1               # Monitoramento do Celery (opcional)
 
 # IA e processamento de mídia
 --extra-index-url https://download.pytorch.org/whl/cu121
-torch==2.2.0
-torchaudio==2.2.0          # Processamento de áudio do PyTorch
+torch>=2.1.0
+torchaudio>=2.1.0
 diffusers==0.25.0          # Biblioteca para Stable Diffusion
 transformers==4.37.2        # Modelos de transformers da Hugging Face
 accelerate==0.26.1         # Otimizações para modelos grandes
