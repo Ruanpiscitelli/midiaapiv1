@@ -354,19 +354,33 @@ SYSTEM_CONFIG = {
     "request_timeout": int(os.getenv("REQUEST_TIMEOUT", "30")),
 }
 
-# Adicionar configurações de cache global
+# Configurações de cache global
 CACHE_CONFIG = {
     "backend": os.getenv("CACHE_BACKEND", "redis"),
-    "url": os.getenv("CACHE_URL", "redis://localhost:6379/1"),
+    "REDIS_URL": os.getenv("CACHE_URL", "redis://localhost:6379/1"),
+    "CACHE_PREFIX": "midia_api_v1",
     "ttl": int(os.getenv("CACHE_TTL", "3600")),
     "max_size": int(os.getenv("CACHE_MAX_SIZE", "1073741824")),  # 1GB
+    "CACHE_TIMES": {
+        "status": 30,  # 30 segundos
+        "voices": 3600,  # 1 hora
+        "health": 60,  # 1 minuto
+        "templates": 3600  # 1 hora
+    }
 }
 
-# Adicionar configurações de rate limiting
+# Configurações de rate limiting
 RATE_LIMIT_CONFIG = {
     "enabled": os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true",
     "default_limit": "100/minute",
-    "storage_url": os.getenv("RATE_LIMIT_STORAGE", "redis://localhost:6379/2")
+    "storage_url": os.getenv("RATE_LIMIT_STORAGE", "redis://localhost:6379/2"),
+    "generate_video": "10/minute",
+    "generate_image": "20/minute",
+    "generate_tts": "30/minute",
+    "clone_voice": "5/minute",
+    "status": "100/minute",
+    "voices": "50/minute",
+    "health": "100/minute"
 }
 
 # Adicionar validações de configuração

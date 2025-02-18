@@ -18,20 +18,19 @@ from db.database import get_job_status, store_job, update_job_status
 from storage.minio_client import get_presigned_url
 
 # Importa configurações
-from config.logging_config import LOGGING_CONFIG
-from config.cache_config import (
-    REDIS_URL, CACHE_PREFIX, CACHE_TIMES,
-    RATE_LIMIT_ENABLED, RATE_LIMITS
+from config import (
+    LOGGING_CONFIG,
+    CACHE_CONFIG,
+    RATE_LIMIT_CONFIG,
+    API_KEY
 )
 
 # Configura logging
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger("api")
 
-# Configuração da API Key
-API_KEY = os.getenv("API_KEY", "minha-chave-api")
-
 # Configura rate limiting
+RATE_LIMIT_ENABLED = RATE_LIMIT_CONFIG["enabled"]
 if RATE_LIMIT_ENABLED:
     limiter = Limiter(key_func=get_remote_address)
 else:
@@ -75,7 +74,7 @@ async def startup():
     """Configura serviços no startup da aplicação."""
     # Configura Redis para cache
     redis = aioredis.from_url(
-        REDIS_URL,
+        CACHE_CONFIG["REDIS_URL"],
         encoding="utf8",
         decode_responses=True
     )
@@ -83,13 +82,13 @@ async def startup():
     # Inicializa cache
     FastAPICache.init(
         RedisBackend(redis),
-        prefix=CACHE_PREFIX,
+        prefix=CACHE_CONFIG["CACHE_PREFIX"],
         key_builder=None,  # Usa key builder padrão
         enable=True
     )
     
     logger.info("Aplicação iniciada com sucesso")
-    logger.info(f"Cache configurado: {REDIS_URL}")
+    logger.info(f"Cache configurado: {CACHE_CONFIG['REDIS_URL']}")
     if limiter:
         logger.info("Rate limiting ativado")
 
@@ -363,7 +362,7 @@ class HealthCheckResponse(BaseModel):
     tags=["Vídeo"],
     dependencies=[Depends(authenticate_api_key)]
 )
-@limiter.limit(RATE_LIMITS["generate_video"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["generate_video"]) if limiter else None
 async def generate_video(request: VideoRequest, x_api_key: str = Depends(authenticate_api_key)):
     """Inicia a geração assíncrona de um vídeo."""
     try:
@@ -394,8 +393,8 @@ async def generate_video(request: VideoRequest, x_api_key: str = Depends(authent
     summary="Consulta o status de um job",
     dependencies=[Depends(authenticate_api_key)]
 )
-@limiter.limit(RATE_LIMITS["status"]) if limiter else None
-@cache(expire=CACHE_TIMES["status"])
+@limiter.limit(RATE_LIMIT_CONFIG["status"]) if limiter else None
+@cache(expire=CACHE_CONFIG["CACHE_TIMES"]["status"])
 async def get_job_status_endpoint(job_id: str, x_api_key: str = Depends(authenticate_api_key)):
     """Retorna o status atual de um job."""
     try:
@@ -609,8 +608,8 @@ async def generate_tts(request: TTSRequest):
     summary="Lista vozes disponíveis",
     description="Retorna uma lista de todas as vozes disponíveis para síntese de fala."
 )
-@limiter.limit(RATE_LIMITS["voices"]) if limiter else None
-@cache(expire=CACHE_TIMES["voices"])
+@limiter.limit(RATE_LIMIT_CONFIG["voices"]) if limiter else None
+@cache(expire=CACHE_CONFIG["CACHE_TIMES"]["voices"])
 async def list_voices(
     x_api_key: str = Depends(authenticate_api_key)
 ):
@@ -661,8 +660,8 @@ async def get_movies_status(project_id: str, x_api_key: str = Depends(authentica
     tags=["Sistema"],
     summary="Verifica o status do sistema"
 )
-@limiter.limit(RATE_LIMITS["health"]) if limiter else None
-@cache(expire=CACHE_TIMES["health"])
+@limiter.limit(RATE_LIMIT_CONFIG["health"]) if limiter else None
+@cache(expire=CACHE_CONFIG["CACHE_TIMES"]["health"])
 async def health_check():
     """Retorna o status geral do sistema e suas dependências."""
     from datetime import datetime
