@@ -85,6 +85,52 @@ class VideoSettings(BaseSettings):
         ]
         for path in paths:
             Path(path).mkdir(parents=True, exist_ok=True)
+            
+    def get_config(self) -> dict:
+        """Retorna configuração formatada para processamento de vídeo."""
+        return {
+            # Diretórios
+            "temp_dir": self.temp_dir,
+            "output_dir": self.output_dir,
+            "assets_dir": self.assets_dir,
+            
+            # Vídeo
+            "width": self.width,
+            "height": self.height,
+            "fps": self.fps,
+            "bitrate": self.bitrate,
+            
+            # Codecs
+            "video_codec": self.video_codec,
+            "audio_codec": self.audio_codec,
+            "pixel_format": self.pixel_format,
+            
+            # Qualidade
+            "crf": self.crf,
+            "preset": self.preset,
+            
+            # Áudio
+            "audio_bitrate": self.audio_bitrate,
+            "audio_sample_rate": self.audio_sample_rate,
+            
+            # Transições
+            "transition_duration": self.transition_duration,
+            "default_transition": self.default_transition,
+            "available_transitions": self.available_transitions,
+            
+            # Efeitos
+            "effects_enabled": self.effects_enabled,
+            "max_effects_per_scene": self.max_effects_per_scene,
+            "available_effects": self.available_effects,
+            
+            # Renderização
+            "max_scenes": self.max_scenes,
+            "max_duration": self.max_duration,
+            "max_file_size": self.max_file_size,
+            
+            # Threads
+            "threads": self.threads
+        }
 
 # Instância global das configurações
 video_settings = VideoSettings()
