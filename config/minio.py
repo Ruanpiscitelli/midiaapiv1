@@ -31,4 +31,22 @@ class MinioSettings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         env_prefix="MINIO_"
-    ) 
+    )
+    
+    def get_config(self) -> dict:
+        """Retorna configuração formatada."""
+        return {
+            "endpoint": self.endpoint,
+            "access_key": self.access_key,
+            "secret_key": self.secret_key,
+            "secure": self.secure,
+            "bucket_name": self.bucket_name,
+            "bucket_region": self.bucket_region,
+            "max_retries": self.max_retries,
+            "retry_delay": self.retry_delay,
+            "connection_timeout": self.connection_timeout,
+            "read_timeout": self.read_timeout
+        }
+
+# Instância global das configurações
+minio_settings = MinioSettings() 
