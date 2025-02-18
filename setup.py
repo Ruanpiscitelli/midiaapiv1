@@ -144,7 +144,7 @@ def setup_virtual_env() -> bool:
             subprocess.run([
                 str(VENV_DIR / "bin" / "python"),
                 "-c",
-                "import torch; print(f'PyTorch {torch.__version__} instalado com sucesso!')"
+                "import torch; print(f'PyTorch versão: {torch.__version__}, CUDA disponível: {torch.cuda.is_available()}')"
             ], check=True)
             return True
         except subprocess.CalledProcessError:

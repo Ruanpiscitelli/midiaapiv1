@@ -1,34 +1,35 @@
 # Dependências principais da API
-fastapi==0.109.2             # Framework web rápido e moderno
-uvicorn==0.27.1             # Servidor ASGI de alta performance
+fastapi>=0.109.2             # Framework web rápido e moderno
+uvicorn>=0.27.1             # Servidor ASGI de alta performance
 python-multipart==0.0.9     # Suporte para upload de arquivos
 pydantic==2.6.1             # Validação de dados e configurações
-python-dotenv==1.0.1        # Carregamento de variáveis de ambiente
+python-dotenv>=1.0.0
 setuptools>=69.0.2          # Necessário para Python 3.12
 
 # Processamento assíncrono
 celery==5.3.6               # Framework de tarefas assíncronas
-redis==5.0.1                # Broker para Celery e cache
+redis>=5.0.1                # Broker para Celery e cache
 flower==2.0.1               # Monitoramento do Celery (opcional)
 
 # IA e processamento de mídia
 --extra-index-url https://download.pytorch.org/whl/cu121
-torch>=2.0.0                # PyTorch com suporte CUDA
+torch==2.2.0
 torchaudio==2.2.0          # Processamento de áudio do PyTorch
 diffusers==0.25.0          # Biblioteca para Stable Diffusion
 transformers==4.37.2        # Modelos de transformers da Hugging Face
 accelerate==0.26.1         # Otimizações para modelos grandes
 safetensors==0.4.2         # Formato otimizado para pesos de modelos
+huggingface-hub==0.20.3
 numpy<2.0
 moviepy==1.0.3             # Edição de vídeo
 ffmpeg-python==0.2.0       # Interface Python para FFmpeg
 
 # Armazenamento e banco de dados
 minio==7.2.3               # Cliente S3/MinIO
-SQLAlchemy==2.0.25         # ORM para banco de dados
+SQLAlchemy>=2.0.25         # ORM para banco de dados
 aiosqlite==0.19.0          # Driver SQLite assíncrono
-alembic==1.13.1            # Migrações de banco de dados
-psycopg2-binary==2.9.9     # Driver PostgreSQL (opcional)
+alembic>=1.13.1            # Migrações de banco de dados
+psycopg2-binary>=2.9.9     # Driver PostgreSQL (opcional)
 
 # Segurança
 python-jose[cryptography]==3.3.0  # JWT tokens
@@ -43,4 +44,8 @@ python-magic==0.4.27       # Detecção de tipos MIME
 tenacity==8.2.3            # Retentativas automáticas
 loguru==0.7.2              # Logging avançado
 supervisor==4.2.5          # Gerenciamento de processos
-wheel>=0.42.0              # Necessário para Python 3.12 
+wheel>=0.42.0              # Necessário para Python 3.12
+
+# Novas dependências
+fastapi-cache2>=0.2.1
+slowapi>=0.1.8 
