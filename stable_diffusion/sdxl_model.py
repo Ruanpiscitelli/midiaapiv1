@@ -21,12 +21,14 @@ import torch
 from torch import autocast
 from diffusers import (
     StableDiffusionXLPipeline,
-    DPMSolverMultistepScheduler
+    DPMSolverMultistepScheduler,
+    DiffusionPipeline,
+    AutoencoderKL
 )
 from PIL import Image
 import numpy as np
 
-from config import SDXL_CONFIG
+from config import SDXL_CONFIG, SDXL_MODEL_PATH, DEVICE
 from storage.minio_client import upload_file
 
 class SDXLModel:
@@ -36,10 +38,10 @@ class SDXLModel:
         """Inicializa o modelo SDXL com configurações otimizadas."""
         try:
             logger.info("Iniciando inicialização do modelo SDXL...")
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.device = DEVICE
             logger.info(f"Usando dispositivo: {self.device}")
             
-            self.model = None
+            self.pipe = None
             self.temp_dir = Path(tempfile.mkdtemp())
             logger.info(f"Diretório temporário criado: {self.temp_dir}")
             
@@ -62,50 +64,34 @@ class SDXLModel:
         try:
             logger.info("Iniciando carregamento do modelo SDXL...")
             
-            # Verifica memória GPU disponível
-            if torch.cuda.is_available():
-                gpu_mem = torch.cuda.get_device_properties(0).total_memory
-                logger.info(f"Memória GPU total: {gpu_mem / 1024**3:.2f}GB")
+            # Converte PosixPath para string se necessário
+            model_path = str(SDXL_MODEL_PATH) if isinstance(SDXL_MODEL_PATH, Path) else SDXL_MODEL_PATH
             
-            # Carrega o modelo com otimizações
-            logger.info("Carregando pipeline do SDXL...")
-            self.model = StableDiffusionXLPipeline.from_pretrained(
-                "stabilityai/stable-diffusion-xl-base-1.0",
-                torch_dtype=torch.float16,  # Usa precisão reduzida para economia de memória
+            # Carrega o modelo
+            self.pipe = DiffusionPipeline.from_pretrained(
+                model_path,
+                torch_dtype=torch.float16,
                 use_safetensors=True,
                 variant="fp16"
             )
-            logger.info("Pipeline SDXL carregado com sucesso")
-            
-            # Carrega VAE separadamente se configurado
-            if "vae_path" in SDXL_CONFIG and SDXL_CONFIG["vae_path"]:
-                self.model.vae = self.model.vae.from_single_file(
-                    SDXL_CONFIG["vae_path"],
-                    torch_dtype=torch.float16
-                )
-            
-            # Otimiza scheduler para melhor qualidade/velocidade
-            logger.info("Configurando scheduler...")
-            self.model.scheduler = DPMSolverMultistepScheduler.from_config(
-                self.model.scheduler.config,
-                algorithm_type="dpmsolver++",
-                solver_order=2
-            )
-            
-            # Move para GPU e ativa otimizações
-            logger.info("Movendo modelo para GPU e aplicando otimizações...")
+
+            # Move para GPU se disponível
             if torch.cuda.is_available():
-                self.model.enable_model_cpu_offload()  # Otimiza uso de memória
-                self.model.enable_attention_slicing()
-                logger.info("Otimizações de memória GPU ativadas")
-            else:
-                self.model.to(self.device)
-                self.model.enable_attention_slicing()
-            
-            logger.info("Modelo SDXL carregado e otimizado com sucesso")
+                logger.info("Movendo modelo para GPU...")
+                self.pipe = self.pipe.to(self.device)
+                
+                # Habilita otimizações
+                if hasattr(self.pipe, 'enable_xformers_memory_efficient_attention'):
+                    self.pipe.enable_xformers_memory_efficient_attention()
+                
+                # Habilita otimização de memória
+                if hasattr(self.pipe, 'enable_model_cpu_offload'):
+                    self.pipe.enable_model_cpu_offload()
+
+            logger.info("Modelo SDXL carregado com sucesso!")
             
         except Exception as e:
-            logger.error(f"Erro detalhado ao carregar modelo SDXL: {str(e)}")
+            logger.error(f"Erro ao carregar modelo SDXL: {str(e)}")
             raise RuntimeError(f"Falha ao inicializar modelo SDXL: {str(e)}")
 
     def generate_image(
@@ -262,7 +248,7 @@ class SDXLModel:
             ValueError: Se os parâmetros forem inválidos
             torch.cuda.OutOfMemoryError: Se não houver memória GPU suficiente
         """
-        if not self.model:
+        if not self.pipe:
             raise RuntimeError("Modelo não foi inicializado corretamente")
             
         try:
@@ -280,7 +266,7 @@ class SDXLModel:
             # Gera imagens com autocast para otimizar memória
             try:
                 with autocast(self.device.type):
-                    output = self.model(
+                    output = self.pipe(
                         prompt=prompts,
                         negative_prompt=[self.negative_prompt] * len(prompts),
                         width=width,
@@ -359,8 +345,8 @@ class SDXLModel:
         """Destrutor para limpeza de recursos."""
         try:
             self._cleanup_temp_files()
-            if hasattr(self, 'model') and self.model is not None:
-                del self.model
+            if hasattr(self, 'pipe') and self.pipe is not None:
+                del self.pipe
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
                     gc.collect()
@@ -383,3 +369,10 @@ def batch_generate_images(prompts: List[str], **kwargs) -> List[str]:
 def generate_and_upload(prompt: str, job_id: str, **kwargs) -> Optional[str]:
     """Interface para geração e upload de imagem."""
     return model.generate_and_upload(prompt, job_id, **kwargs)
+
+def get_model() -> SDXLModel:
+    """Retorna a instância global do modelo, criando se necessário."""
+    global model
+    if model is None:
+        model = SDXLModel()
+    return model

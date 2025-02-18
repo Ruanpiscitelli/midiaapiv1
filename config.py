@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import logging.config
+import torch
 
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -28,7 +29,13 @@ API_KEY = os.getenv("API_KEY", "minha-chave-api")  # Chave padrão apenas para d
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Configurações do Stable Diffusion XL
-SDXL_MODEL_PATH = MODELS_DIR / "sdxl"
+SDXL_MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"  # Usa modelo do HuggingFace
+# ou
+# SDXL_MODEL_PATH = str(Path(__file__).parent / "models" / "sdxl")  # Para modelo local
+
+# Dispositivo para inferência
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
 SDXL_CONFIG = {
     "model_path": SDXL_MODEL_PATH / "model.safetensors",
     "vae_path": SDXL_MODEL_PATH / "vae.safetensors",
