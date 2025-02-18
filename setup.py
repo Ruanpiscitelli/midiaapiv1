@@ -114,9 +114,22 @@ def setup_virtual_env() -> bool:
         # Determina o pip do ambiente virtual
         pip_path = VENV_DIR / "bin" / "pip" if os.name != "nt" else VENV_DIR / "Scripts" / "pip.exe"
         
-        # Instala huggingface_hub primeiro
+        # Instala e atualiza pip primeiro
         subprocess.run([str(pip_path), "install", "--upgrade", "pip"], check=True)
-        subprocess.run([str(pip_path), "install", "huggingface_hub"], check=True)
+        
+        # Instala torch e cuda primeiro
+        logger.info("Instalando PyTorch com suporte CUDA...")
+        subprocess.run([
+            str(pip_path), 
+            "install", 
+            "torch", 
+            "torchvision", 
+            "torchaudio", 
+            "--index-url", 
+            "https://download.pytorch.org/whl/cu121"
+        ], check=True)
+        
+        # Depois instala o resto das dependências
         subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
         
         return True
@@ -214,17 +227,17 @@ def main():
 
     # Verifica versão do Python
     if not check_python_version():
-        logger.error("Python 3.12 ou superior é necessário!")
+        logger.error("Python 3.10 ou superior é necessário!")
         sys.exit(1)
 
-    # Verifica dependências do sistema
-    if not check_system_dependencies():
-        logger.error("Dependências do sistema não atendidas!")
-        sys.exit(1)
-
-    # Setup do ambiente virtual
+    # Setup do ambiente virtual primeiro
     if not setup_virtual_env():
         logger.error("Falha ao configurar ambiente virtual!")
+        sys.exit(1)
+
+    # Agora verifica dependências do sistema
+    if not check_system_dependencies():
+        logger.error("Dependências do sistema não atendidas!")
         sys.exit(1)
 
     # Cria arquivo .env
