@@ -7,6 +7,7 @@ from .base import base_settings
 from .models import models_settings
 from .cache import cache_settings, rate_limit_settings
 from .minio import MinioSettings
+from .video import video_settings
 
 # Re-exporta configurações principais
 API_VERSION = base_settings.API_VERSION
@@ -95,6 +96,51 @@ RATE_LIMIT_CONFIG = {
     "default_limit": rate_limit_settings.DEFAULT_LIMIT,
     "storage_url": rate_limit_settings.STORAGE_URL,
     "limits": rate_limit_settings.LIMITS
+}
+
+# Re-exporta configurações de vídeo
+VIDEO_CONFIG = {
+    # Diretórios
+    "temp_dir": video_settings.temp_dir,
+    "output_dir": video_settings.output_dir,
+    "assets_dir": video_settings.assets_dir,
+    
+    # Configurações de vídeo
+    "width": video_settings.width,
+    "height": video_settings.height,
+    "fps": video_settings.fps,
+    "bitrate": video_settings.bitrate,
+    
+    # Configurações de codecs
+    "video_codec": video_settings.video_codec,
+    "audio_codec": video_settings.audio_codec,
+    "pixel_format": video_settings.pixel_format,
+    
+    # Configurações de qualidade
+    "crf": video_settings.crf,
+    "preset": video_settings.preset,
+    
+    # Configurações de áudio
+    "audio_bitrate": video_settings.audio_bitrate,
+    "audio_sample_rate": video_settings.audio_sample_rate,
+    
+    # Configurações de transições
+    "transition_duration": video_settings.transition_duration,
+    "default_transition": video_settings.default_transition,
+    "available_transitions": video_settings.available_transitions,
+    
+    # Configurações de efeitos
+    "effects_enabled": video_settings.effects_enabled,
+    "max_effects_per_scene": video_settings.max_effects_per_scene,
+    "available_effects": video_settings.available_effects,
+    
+    # Configurações de renderização
+    "max_scenes": video_settings.max_scenes,
+    "max_duration": video_settings.max_duration,
+    "max_file_size": video_settings.max_file_size,
+    
+    # Configurações de threads
+    "threads": video_settings.threads
 }
 
 # Valida diretórios na inicialização
