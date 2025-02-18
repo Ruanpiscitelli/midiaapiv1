@@ -11,13 +11,18 @@ import torch
 # Carrega variáveis de ambiente
 load_dotenv()
 
-# Configurações de logging primeiro
+# Configurações de logging melhoradas
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
+        },
+        "detailed": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S"
         }
     },
     "handlers": {
@@ -27,14 +32,41 @@ LOGGING_CONFIG = {
             "level": "INFO"
         },
         "file": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": "app.log",
-            "formatter": "default",
-            "level": "INFO"
+            "formatter": "detailed",
+            "level": "DEBUG",
+            "maxBytes": 10485760,  # 10MB
+            "backupCount": 5
+        },
+        "error_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "error.log",
+            "formatter": "detailed",
+            "level": "ERROR",
+            "maxBytes": 10485760,
+            "backupCount": 5
+        }
+    },
+    "loggers": {
+        "api": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False
+        },
+        "storage": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False
+        },
+        "tasks": {
+            "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False
         }
     },
     "root": {
-        "handlers": ["console", "file"],
+        "handlers": ["console", "file", "error_file"],
         "level": "INFO"
     }
 }
@@ -151,7 +183,13 @@ FISH_SPEECH_CONFIG = {
         "en-US", "zh-CN", "de-DE", "ja-JP",
         "fr-FR", "es-ES", "ko-KR", "ar-SA",
         "pt-BR", "it-IT", "ru-RU", "hi-IN"
-    ]
+    ],
+    
+    # Lista de vozes disponíveis
+    "available_voices": [
+        "male_1", "male_2", "female_1", "female_2",
+        "child_1", "elder_1", "neutral_1"
+    ],
 }
 
 # Configurações do Celery

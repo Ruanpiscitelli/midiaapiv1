@@ -253,6 +253,99 @@ def delete_file(object_name: str) -> bool:
             minio_credentials.last_update = 0
         return False
 
+def check_minio_connection(timeout: int = 5) -> bool:
+    """
+    Verifica se a conexão com o MinIO está funcionando.
+    
+    Args:
+        timeout: Tempo máximo de espera em segundos
+        
+    Returns:
+        bool: True se a conexão está ok, False caso contrário
+    """
+    try:
+        client = get_minio_client()
+        if not client:
+            return False
+            
+        # Configura timeout para a operação
+        original_timeout = client._http.timeout
+        client._http.timeout = timeout
+        
+        try:
+            # Tenta listar buckets com timeout
+            client.list_buckets()
+            return True
+        finally:
+            # Restaura timeout original
+            client._http.timeout = original_timeout
+            
+    except Exception as e:
+        logger.error(f"Erro ao verificar conexão com MinIO: {str(e)}")
+        return False
+
+def validate_minio_config():
+    """
+    Valida se todas as configurações necessárias do MinIO estão presentes.
+    
+    Returns:
+        bool: True se todas as configurações estão presentes
+    """
+    required_keys = ["max_retries", "retry_delay", "bucket_name"]
+    
+    for key in required_keys:
+        if key not in MINIO_CONFIG:
+            logger.error(f"Configuração ausente no MINIO_CONFIG: {key}")
+            return False
+            
+    return True
+
+@retry(
+    stop=stop_after_attempt(MINIO_CONFIG.get("max_retries", 3)),  # valor padrão se não definido
+    wait=wait_exponential(multiplier=MINIO_CONFIG.get("retry_delay", 1), min=1, max=10)
+)
+def list_files(prefix: str = "", recursive: bool = True) -> list[str]:
+    """
+    Lista arquivos no bucket do MinIO.
+    
+    Args:
+        prefix: Prefixo para filtrar arquivos (ex: 'images/', 'videos/')
+        recursive: Se deve listar arquivos em subdiretórios
+        
+    Returns:
+        list[str]: Lista de nomes dos arquivos encontrados
+    """
+    if not validate_minio_config():
+        logger.error("Configurações do MinIO inválidas")
+        return []
+        
+    try:
+        client = get_minio_client()
+        if not client:
+            raise RuntimeError("Cliente MinIO não disponível")
+            
+        # Lista objetos com paginação
+        objects = []
+        for obj in client.list_objects(
+            bucket_name=MINIO_CONFIG["bucket_name"],
+            prefix=prefix,
+            recursive=recursive
+        ):
+            objects.append(obj.object_name)
+            
+        logger.debug(f"Listados {len(objects)} arquivos com prefixo '{prefix}'")
+        return objects
+        
+    except Exception as e:
+        logger.error(f"Erro ao listar arquivos: {e}")
+        if "token expired" in str(e).lower():
+            minio_credentials.last_update = 0
+        return []
+
+# Validação inicial das configurações
+if not validate_minio_config():
+    logger.warning("Configurações do MinIO incompletas ou inválidas")
+
 # Inicialização
 if not ensure_bucket():
     logger.warning("Não foi possível garantir a existência do bucket")

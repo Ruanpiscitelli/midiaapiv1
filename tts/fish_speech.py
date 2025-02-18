@@ -123,23 +123,27 @@ class FishSpeechTTS:
         """Carrega um modelo de voz específico."""
         if voice_name in self.loaded_voices:
             return self.loaded_voices[voice_name]
-
+        
         try:
             # Procura primeiro nas vozes pré-treinadas
             voice_path = self.model_dir / "voices" / f"{voice_name}.pth"
             
-            # Se não encontrar, procura nas vozes customizadas
-            if not voice_path.exists():
+            # Valida apenas vozes pré-treinadas
+            if voice_path.exists():
+                if voice_name not in FISH_SPEECH_CONFIG["available_voices"]:
+                    raise ValueError(f"Voz pré-treinada {voice_name} não disponível")
+            else:
+                # Para vozes customizadas, apenas verifica se o arquivo existe
                 voice_path = self.model_dir / "custom_voices" / f"{voice_name}.pth"
             
             if not voice_path.exists():
                 raise FileNotFoundError(f"Voz {voice_name} não encontrada")
-
+            
             voice_model = torch.load(voice_path, map_location=self.device)
             self.loaded_voices[voice_name] = voice_model
             logger.info(f"Voz {voice_name} carregada com sucesso")
             return voice_model
-
+        
         except Exception as e:
             logger.error(f"Erro ao carregar voz {voice_name}: {str(e)}")
             return None

@@ -208,16 +208,18 @@ class Element(BaseModel):
 
 # 🔹 Modelo para definir uma cena no vídeo
 class Scene(BaseModel):
+    """Modelo para uma cena do vídeo."""
     id: Optional[str] = Field(None, description="ID da cena (pode ser gerado automaticamente)")
-    background_color: str = Field("#000000", description="Cor de fundo em formato hexadecimal")
+    background_color: str = Field("#000000", description="Cor de fundo em hex")
     duration: float = Field(-1, description="Se -1, calcula automaticamente com base nos elementos")
-    elements: List[Dict[str, Any]] = Field(..., description="Lista de elementos (cada um com seu schema)")
+    elements: List[dict] = Field(..., description="Elementos da cena")
     cache: bool = Field(True, description="Se deve cachear os elementos da cena")
     comment: Optional[str] = Field(None, description="Comentário opcional sobre a cena")
 
     class Config:
         schema_extra = {
             "example": {
+                "id": "scene_1",
                 "background_color": "#000000",
                 "duration": 10.0,
                 "elements": [
@@ -231,7 +233,9 @@ class Scene(BaseModel):
                         "text": "Olá mundo!",
                         "position": "center-center"
                     }
-                ]
+                ],
+                "cache": True,
+                "comment": "Cena de abertura"
             }
         }
 
@@ -343,12 +347,13 @@ class JobResultResponse(BaseModel):
     files: Optional[Dict[str, List[str]]] = Field(None, description="URLs de arquivos auxiliares")
 
 class HealthCheckResponse(BaseModel):
-    status: str = Field(..., description="Status geral do serviço")
-    version: str = Field(..., description="Versão da API")
-    uptime: float = Field(..., description="Tempo de execução em segundos")
-    database_status: str = Field(..., description="Status da conexão com banco de dados")
-    redis_status: str = Field(..., description="Status da conexão com Redis")
-    minio_status: str = Field(..., description="Status da conexão com MinIO")
+    """Modelo para resposta do health check."""
+    status: str
+    version: str
+    uptime: float
+    database_status: str
+    redis_status: str 
+    minio_status: str
 
 # ✅ Endpoint para criar um novo vídeo
 @app.post(
