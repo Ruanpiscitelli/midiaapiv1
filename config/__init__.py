@@ -33,11 +33,23 @@ SDXL_LOCAL_PATH = SDXL_CONFIG.local_path  # Caminho local do modelo
 # Re-exporta configurações do MinIO
 minio_settings = MinioSettings()
 MINIO_CONFIG = {
+    # Configurações de conexão
     "endpoint": minio_settings.endpoint,
     "access_key": minio_settings.access_key,
     "secret_key": minio_settings.secret_key,
     "secure": minio_settings.secure,
-    "bucket": minio_settings.bucket
+    
+    # Configurações de bucket
+    "bucket_name": minio_settings.bucket_name,
+    "bucket_region": minio_settings.bucket_region,
+    
+    # Configurações de retry
+    "max_retries": minio_settings.max_retries,
+    "retry_delay": minio_settings.retry_delay,
+    
+    # Configurações de timeout
+    "connection_timeout": minio_settings.connection_timeout,
+    "read_timeout": minio_settings.read_timeout
 }
 
 # Re-exporta configurações de cache

@@ -1,3 +1,13 @@
+"""
+Cliente MinIO para operações de armazenamento.
+
+Este módulo fornece funções para:
+- Upload de arquivos
+- Download de arquivos
+- Geração de URLs pressinadas
+- Verificação de existência de arquivos
+"""
+
 import os
 import time
 import requests
@@ -53,18 +63,12 @@ class MinioCredentials:
 # Instância global das credenciais
 minio_credentials = MinioCredentials()
 
-@lru_cache(maxsize=1)
 def get_minio_client() -> Optional[Minio]:
     """
-    Retorna cliente MinIO com credenciais atualizadas.
+    Retorna cliente MinIO configurado.
     """
     try:
-        # Atualiza credenciais se necessário
-        if minio_credentials.needs_update():
-            if not minio_credentials.update_credentials():
-                raise RuntimeError("Falha ao atualizar credenciais")
-        
-        # Cria cliente com as credenciais atuais
+        # Cria cliente com as configurações
         client = Minio(
             MINIO_CONFIG["endpoint"],
             access_key=MINIO_CONFIG["access_key"],
@@ -73,10 +77,13 @@ def get_minio_client() -> Optional[Minio]:
         )
         
         # Verifica se o bucket existe
-        if not client.bucket_exists(MINIO_CONFIG["bucket"]):
-            logger.warning(f"Bucket {MINIO_CONFIG['bucket']} não existe! Criando...")
-            client.make_bucket(MINIO_CONFIG["bucket"])
-        logger.info(f"Conectado ao bucket {MINIO_CONFIG['bucket']} com sucesso!")
+        if not client.bucket_exists(MINIO_CONFIG["bucket_name"]):
+            logger.warning(f"Bucket {MINIO_CONFIG['bucket_name']} não existe! Criando...")
+            client.make_bucket(
+                MINIO_CONFIG["bucket_name"],
+                location=MINIO_CONFIG["bucket_region"]
+            )
+        logger.info(f"Conectado ao bucket {MINIO_CONFIG['bucket_name']} com sucesso!")
         
         return client
         
@@ -115,7 +122,16 @@ def ensure_bucket() -> bool:
     )
 )
 def upload_file(file_path: str | Path, object_name: str) -> Optional[str]:
-    """Upload de arquivo com retry e renovação automática de credenciais."""
+    """
+    Faz upload de um arquivo para o MinIO.
+    
+    Args:
+        file_path: Caminho do arquivo local
+        object_name: Nome do objeto no MinIO
+        
+    Returns:
+        URL do arquivo ou None se falhar
+    """
     try:
         client = get_minio_client()
         if not client:
@@ -136,20 +152,11 @@ def upload_file(file_path: str | Path, object_name: str) -> Optional[str]:
             }
         )
         
-        return build_public_url(object_name)
+        return get_presigned_url(object_name)
         
     except Exception as e:
         logger.error(f"Erro no upload: {e}")
-        if "token expired" in str(e).lower():
-            # Força atualização de credenciais
-            minio_credentials.last_update = 0
         return None
-
-def build_public_url(object_name: str) -> str:
-    """Constrói URL pública para um objeto."""
-    base = MINIO_CONFIG["public_url_base"].rstrip("/")
-    bucket = MINIO_CONFIG["bucket_name"]
-    return f"{base}/{bucket}/{object_name}"
 
 def get_presigned_url(object_name: str, expires: int = 7 * 24 * 60 * 60) -> Optional[str]:
     """
@@ -178,7 +185,11 @@ def get_presigned_url(object_name: str, expires: int = 7 * 24 * 60 * 60) -> Opti
 
 @retry(
     stop=stop_after_attempt(MINIO_CONFIG["max_retries"]),
-    wait=wait_exponential(multiplier=MINIO_CONFIG["retry_delay"], min=1, max=10)
+    wait=wait_exponential(
+        multiplier=MINIO_CONFIG["retry_delay"],
+        min=1,
+        max=10
+    )
 )
 def download_file(object_name: str, dest_path: str | Path) -> bool:
     """
@@ -189,7 +200,7 @@ def download_file(object_name: str, dest_path: str | Path) -> bool:
         dest_path: Caminho local para salvar o arquivo
         
     Returns:
-        bool: True se o download foi bem sucedido, False caso contrário
+        bool: True se o download foi bem sucedido
     """
     try:
         client = get_minio_client()
@@ -208,13 +219,15 @@ def download_file(object_name: str, dest_path: str | Path) -> bool:
         
     except Exception as e:
         logger.error(f"Erro no download: {e}")
-        if "token expired" in str(e).lower():
-            minio_credentials.last_update = 0
         return False
 
 @retry(
     stop=stop_after_attempt(MINIO_CONFIG["max_retries"]),
-    wait=wait_exponential(multiplier=MINIO_CONFIG["retry_delay"], min=1, max=10)
+    wait=wait_exponential(
+        multiplier=MINIO_CONFIG["retry_delay"],
+        min=1,
+        max=10
+    )
 )
 def delete_file(object_name: str) -> bool:
     """
@@ -224,7 +237,7 @@ def delete_file(object_name: str) -> bool:
         object_name: Nome do arquivo no MinIO
         
     Returns:
-        bool: True se o arquivo foi deletado com sucesso, False caso contrário
+        bool: True se o arquivo foi deletado com sucesso
     """
     try:
         client = get_minio_client()
@@ -249,36 +262,23 @@ def delete_file(object_name: str) -> bool:
         
     except Exception as e:
         logger.error(f"Erro ao deletar arquivo: {e}")
-        if "token expired" in str(e).lower():
-            minio_credentials.last_update = 0
         return False
 
-def check_minio_connection(timeout: int = 5) -> bool:
+def check_minio_connection() -> bool:
     """
     Verifica se a conexão com o MinIO está funcionando.
     
-    Args:
-        timeout: Tempo máximo de espera em segundos
-        
     Returns:
-        bool: True se a conexão está ok, False caso contrário
+        bool: True se a conexão está ok
     """
     try:
         client = get_minio_client()
         if not client:
             return False
             
-        # Configura timeout para a operação
-        original_timeout = client._http.timeout
-        client._http.timeout = timeout
-        
-        try:
-            # Tenta listar buckets com timeout
-            client.list_buckets()
-            return True
-        finally:
-            # Restaura timeout original
-            client._http.timeout = original_timeout
+        # Tenta listar buckets
+        client.list_buckets()
+        return True
             
     except Exception as e:
         logger.error(f"Erro ao verificar conexão com MinIO: {str(e)}")
