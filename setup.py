@@ -63,8 +63,11 @@ def check_system_dependencies() -> bool:
         if not torch.cuda.is_available():
             logger.warning("CUDA não disponível - GPU não será utilizada")
             
-        # Verifica Docker
-        subprocess.run(["docker", "--version"], check=True, capture_output=True)
+        # Verifica Docker (opcional)
+        try:
+            subprocess.run(["docker", "--version"], check=True, capture_output=True)
+        except Exception:
+            logger.warning("Docker não encontrado - alguns recursos podem estar indisponíveis")
         
         return True
     except Exception as e:
@@ -81,8 +84,9 @@ def setup_virtual_env() -> bool:
         # Determina o pip do ambiente virtual
         pip_path = VENV_DIR / "bin" / "pip" if os.name != "nt" else VENV_DIR / "Scripts" / "pip.exe"
         
-        # Atualiza pip e instala dependências
+        # Atualiza pip e instala numpy < 2.0 primeiro
         subprocess.run([str(pip_path), "install", "--upgrade", "pip"], check=True)
+        subprocess.run([str(pip_path), "install", "numpy<2.0"], check=True)
         subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
         
         return True
