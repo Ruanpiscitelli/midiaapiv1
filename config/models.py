@@ -159,5 +159,9 @@ class ModelsSettings(BaseSettings):
             "available_voices": self.fish_speech.available_voices
         }
 
+    def get_sdxl_model_path(self) -> str:
+        """Retorna o caminho do modelo SDXL."""
+        return self.sdxl.model_path
+
 # Instância global das configurações
 models_settings = ModelsSettings() 
