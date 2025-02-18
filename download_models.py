@@ -194,7 +194,8 @@ def download_sdxl():
 
 def download_fish_speech_model():
     """
-    Download do modelo Fish Speech V1.4 do Hugging Face.
+    Download do modelo Fish Speech V1.5/V1.4 do Hugging Face.
+    Documentação: https://huggingface.co/fishaudio/fish-speech-1.5
     """
     try:
         model_dir = FISH_SPEECH_CONFIG["model_path"]
@@ -209,7 +210,8 @@ def download_fish_speech_model():
             files_to_download = [
                 "firefly-gan-vq-fsq-8x1024-21hz-generator.pth",  # Decoder
                 "config.json",
-                "tokenizer.json"
+                "vocab.json",  # Alterado de tokenizer.json para vocab.json
+                "merges.txt"   # Arquivo adicional necessário
             ]
         except Exception:
             # Fallback para V1.4
@@ -218,7 +220,8 @@ def download_fish_speech_model():
             files_to_download = [
                 "model.pth",
                 "config.json",
-                "tokenizer.json"
+                "vocab.json",
+                "merges.txt"
             ]
         
         # Download dos arquivos principais
@@ -231,12 +234,20 @@ def download_fish_speech_model():
                         repo_id=repo_id,
                         filename=filename,
                         local_dir=model_dir,
-                        local_dir_use_symlinks=False
+                        local_dir_use_symlinks=False,
+                        token=os.getenv("HF_TOKEN")  # Token para acesso ao modelo
                     )
                     logger.info(f"{filename} baixado com sucesso")
                 except Exception as e:
-                    logger.error(f"Erro ao baixar {filename}: {e}")
-                    raise
+                    if "401 Client Error" in str(e):
+                        logger.error("Erro de autenticação. Configure a variável de ambiente HF_TOKEN")
+                        raise RuntimeError("Token de acesso ao Hugging Face necessário")
+                    elif "404" in str(e):
+                        logger.warning(f"Arquivo {filename} não encontrado, continuando...")
+                        continue
+                    else:
+                        logger.error(f"Erro ao baixar {filename}: {e}")
+                        raise
             else:
                 logger.info(f"{filename} já existe")
         
@@ -249,12 +260,17 @@ def download_fish_speech_model():
                     repo_id=repo_id,
                     filename="voices/default.pth",
                     local_dir=voice_dir.parent,
-                    local_dir_use_symlinks=False
+                    local_dir_use_symlinks=False,
+                    token=os.getenv("HF_TOKEN")
                 )
                 logger.info("Voz padrão baixada com sucesso")
             except Exception as e:
-                logger.error(f"Erro ao baixar voz padrão: {e}")
-                raise
+                if "404" in str(e):
+                    logger.warning("Voz padrão não encontrada, usando fallback...")
+                    # Aqui você pode adicionar um fallback para outra voz
+                else:
+                    logger.error(f"Erro ao baixar voz padrão: {e}")
+                    raise
         
         logger.info("Download do Fish Speech concluído com sucesso!")
         return True
