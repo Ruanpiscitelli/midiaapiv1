@@ -49,6 +49,7 @@ MINIO_SECURE=false
 # Configurações de IA
 MODEL_PATH=./models
 CUDA_VISIBLE_DEVICES=0,1,2,3
+HF_TOKEN=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
 """
 
 # Configuração dos modelos e seus hashes MD5
@@ -79,7 +80,7 @@ MODELS_CONFIG = {
 
 def check_python_version() -> bool:
     """Verifica se a versão do Python é compatível."""
-    return sys.version_info >= (3, 12)
+    return sys.version_info >= (3, 10)
 
 def check_system_dependencies() -> bool:
     """Verifica dependências do sistema."""
@@ -113,9 +114,9 @@ def setup_virtual_env() -> bool:
         # Determina o pip do ambiente virtual
         pip_path = VENV_DIR / "bin" / "pip" if os.name != "nt" else VENV_DIR / "Scripts" / "pip.exe"
         
-        # Atualiza pip e instala numpy < 2.0 primeiro
+        # Instala huggingface_hub primeiro
         subprocess.run([str(pip_path), "install", "--upgrade", "pip"], check=True)
-        subprocess.run([str(pip_path), "install", "numpy<2.0"], check=True)
+        subprocess.run([str(pip_path), "install", "huggingface_hub"], check=True)
         subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
         
         return True
@@ -138,7 +139,16 @@ def download_model_file(url: str, file_path: Path) -> bool:
     """Baixa um arquivo de modelo."""
     try:
         import requests
-        response = requests.get(url, stream=True)
+        
+        # Obter token do ambiente ou solicitar login
+        token = os.getenv("HF_TOKEN")
+        if not token:
+            logger.info("Token HF não encontrado. Tentando login...")
+            subprocess.run(["huggingface-cli", "login"], check=True)
+            
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+        
+        response = requests.get(url, stream=True, headers=headers)
         response.raise_for_status()
         
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -204,7 +214,7 @@ def main():
 
     # Verifica versão do Python
     if not check_python_version():
-        logger.error("Python 3.12 ou superior é necessário!")
+        logger.error("Python 3.10 ou superior é necessário!")
         sys.exit(1)
 
     # Verifica dependências do sistema
