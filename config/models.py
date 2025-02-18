@@ -2,7 +2,7 @@
 Configurações dos modelos de IA usando Pydantic.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Literal
 from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -56,6 +56,9 @@ class ModelsSettings(BaseSettings):
     # Configurações de Hardware
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     num_gpus: int = torch.cuda.device_count() if torch.cuda.is_available() else 0
+    
+    # Configurações de Storage
+    storage_type: Literal["local", "minio"] = "minio"
     
     # Configurações de Segurança
     hf_token: str = os.getenv("HF_TOKEN", "")
