@@ -3,6 +3,10 @@ Módulo de configuração principal.
 Exporta todas as configurações de forma organizada.
 """
 
+import os
+import torch
+from pathlib import Path
+
 from .base import base_settings
 from .models import models_settings
 from .cache import cache_settings, rate_limit_settings
@@ -10,6 +14,7 @@ from .minio import MinioSettings
 from .video import video_settings
 from .database import database_settings
 from .logging import logging_settings
+from .celery import celery_settings
 
 # Re-exporta configurações principais
 API_VERSION = base_settings.API_VERSION
@@ -77,102 +82,34 @@ MINIO_CONFIG = {
 
 # Re-exporta configurações de cache
 CACHE_CONFIG = {
-    "REDIS_URL": cache_settings.REDIS_URL,
-    "CACHE_PREFIX": cache_settings.CACHE_PREFIX,
-    "TTL": cache_settings.TTL,
-    "MAX_SIZE": cache_settings.MAX_SIZE,
-    "CACHE_TIMES": cache_settings.CACHE_TIMES,
-    "COMPRESSION": {
-        "enabled": cache_settings.COMPRESSION_ENABLED,
-        "level": cache_settings.COMPRESSION_LEVEL
-    },
-    "FALLBACK": {
-        "enabled": cache_settings.FALLBACK_ENABLED,
-        "timeout": cache_settings.FALLBACK_TIMEOUT
+    "REDIS_URL": "redis://localhost:6379/0",
+    "CACHE_PREFIX": "midia_api_cache",
+    "TTL": 3600,  # 1 hora
+    "CACHE_TIMES": {
+        "status": 60,  # 1 minuto
+        "health": 300,  # 5 minutos
+        "voices": 3600  # 1 hora
     }
 }
 
 # Re-exporta configurações de rate limiting
 RATE_LIMIT_CONFIG = {
-    "enabled": rate_limit_settings.ENABLED,
-    "default_limit": rate_limit_settings.DEFAULT_LIMIT,
-    "storage_url": rate_limit_settings.STORAGE_URL,
-    "limits": rate_limit_settings.LIMITS
+    "enabled": True,
+    "default_limit": "100/minute",
+    "generate_video": "10/minute",
+    "generate_image": "20/minute",
+    "generate_tts": "30/minute",
+    "clone_voice": "5/minute",
+    "status": "200/minute",
+    "voices": "100/minute",
+    "health": "100/minute"
 }
 
 # Re-exporta configurações de vídeo
-VIDEO_CONFIG = {
-    # Diretórios
-    "temp_dir": video_settings.temp_dir,
-    "output_dir": video_settings.output_dir,
-    "assets_dir": video_settings.assets_dir,
-    
-    # Configurações de vídeo
-    "width": video_settings.width,
-    "height": video_settings.height,
-    "fps": video_settings.fps,
-    "bitrate": video_settings.bitrate,
-    
-    # Configurações de codecs
-    "video_codec": video_settings.video_codec,
-    "audio_codec": video_settings.audio_codec,
-    "pixel_format": video_settings.pixel_format,
-    
-    # Configurações de qualidade
-    "crf": video_settings.crf,
-    "preset": video_settings.preset,
-    
-    # Configurações de áudio
-    "audio_bitrate": video_settings.audio_bitrate,
-    "audio_sample_rate": video_settings.audio_sample_rate,
-    
-    # Configurações de transições
-    "transition_duration": video_settings.transition_duration,
-    "default_transition": video_settings.default_transition,
-    "available_transitions": video_settings.available_transitions,
-    
-    # Configurações de efeitos
-    "effects_enabled": video_settings.effects_enabled,
-    "max_effects_per_scene": video_settings.max_effects_per_scene,
-    "available_effects": video_settings.available_effects,
-    
-    # Configurações de renderização
-    "max_scenes": video_settings.max_scenes,
-    "max_duration": video_settings.max_duration,
-    "max_file_size": video_settings.max_file_size,
-    
-    # Configurações de threads
-    "threads": video_settings.threads
-}
+VIDEO_CONFIG = video_settings.get_config()
 
 # Re-exporta configurações do banco de dados
-DATABASE_CONFIG = {
-    # Configurações de conexão
-    "host": database_settings.host,
-    "port": database_settings.port,
-    "database": database_settings.database,
-    "username": database_settings.username,
-    "password": database_settings.password,
-    "url": database_settings.url,
-    
-    # Configurações do pool
-    "pool_size": database_settings.pool_size,
-    "max_overflow": database_settings.max_overflow,
-    "pool_timeout": database_settings.pool_timeout,
-    "pool_recycle": database_settings.pool_recycle,
-    
-    # Configurações de timeout
-    "connect_timeout": database_settings.connect_timeout,
-    "command_timeout": database_settings.command_timeout,
-    
-    # Configurações de SSL
-    "ssl_mode": database_settings.ssl_mode,
-    "ssl_cert": database_settings.ssl_cert,
-    
-    # Configurações de debug
-    "echo": database_settings.echo,
-    "echo_pool": database_settings.echo_pool
-}
+DATABASE_CONFIG = database_settings.get_config()
 
 # Re-exporta configurações de logging
 LOGGING_CONFIG = logging_settings.get_config()
@@ -189,4 +126,56 @@ CELERY_CONFIG = {
     "accept_content": ["json"],
     "timezone": "UTC",
     "enable_utc": True
-} 
+}
+
+# Diretórios base
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODELS_DIR = BASE_DIR / "models"
+TEMP_DIR = BASE_DIR / "temp"
+
+# Configurações de hardware
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+NUM_GPUS = torch.cuda.device_count() if torch.cuda.is_available() else 0
+
+# Configurações de modelos
+MODELS_CONFIG = models_settings.get_config()
+SDXL_CONFIG = models_settings.get_sdxl_config()
+FISH_SPEECH_CONFIG = models_settings.get_fish_speech_config()
+SDXL_MODEL_PATH = models_settings.get_sdxl_model_path()
+
+# Configurações do MinIO
+MINIO_CONFIG = minio_settings.get_config()
+
+# Configurações de Celery
+CELERY_CONFIG = celery_settings.get_config()
+
+# Configurações de cache
+CACHE_CONFIG = {
+    "REDIS_URL": "redis://localhost:6379/0",
+    "CACHE_PREFIX": "midia_api_cache",
+    "TTL": 3600,  # 1 hora
+    "CACHE_TIMES": {
+        "status": 60,  # 1 minuto
+        "health": 300,  # 5 minutos
+        "voices": 3600  # 1 hora
+    }
+}
+
+# Configurações de rate limit
+RATE_LIMIT_CONFIG = {
+    "enabled": True,
+    "default_limit": "100/minute",
+    "generate_video": "10/minute",
+    "generate_image": "20/minute",
+    "generate_tts": "30/minute",
+    "clone_voice": "5/minute",
+    "status": "200/minute",
+    "voices": "100/minute",
+    "health": "100/minute"
+}
+
+# Configurações da API
+API_VERSION = "2.0"
+API_TITLE = "Gerador de Vídeos com IA"
+API_KEY = os.getenv("API_KEY", "minha-chave-api")
+DEBUG = os.getenv("DEBUG", "False").lower() == "true" 

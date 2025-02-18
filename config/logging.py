@@ -25,10 +25,11 @@ class LoggingSettings(BaseSettings):
     default_level: str = "INFO"
     
     # Formato das mensagens
-    format: str = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+    format: str = "%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d - %(message)s"
+    datefmt: str = "%Y-%m-%d %H:%M:%S.%f"
     
     # Configurações de arquivo
-    file_format: str = "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
+    file_format: str = "%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d - %(message)s"
     rotation: str = "1 day"
     retention: str = "1 month"
     compression: str = "zip"
@@ -72,52 +73,56 @@ class LoggingSettings(BaseSettings):
         
     def get_config(self) -> Dict:
         """
-        Retorna configuração formatada para uso com loguru.
+        Retorna configuração formatada para uso com logging.config.dictConfig.
         """
         return {
-            "handlers": [
-                # Handler para console
-                {
-                    "sink": "sys.stdout",
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "default": {
                     "format": self.format,
-                    "colorize": self.colorize,
+                    "datefmt": self.datefmt
+                },
+                "file": {
+                    "format": self.file_format,
+                    "datefmt": self.datefmt
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                    "stream": "ext://sys.stdout",
                     "level": self.default_level
                 },
-                # Handler para arquivo
-                {
-                    "sink": f"{self.log_dir}/app.log",
-                    "format": self.file_format,
-                    "rotation": self.rotation,
-                    "retention": self.retention,
-                    "compression": self.compression,
-                    "level": self.default_level,
-                    "serialize": self.serialize
+                "file": {
+                    "class": "logging.handlers.TimedRotatingFileHandler",
+                    "formatter": "file",
+                    "filename": f"{self.log_dir}/app.log",
+                    "when": "midnight",
+                    "interval": 1,
+                    "backupCount": 30,
+                    "encoding": "utf-8",
+                    "level": self.default_level
                 }
-            ],
-            "levels": [
-                {"name": "TRACE", "no": 5, "color": "<cyan>"},
-                {"name": "DEBUG", "no": 10, "color": "<blue>"},
-                {"name": "INFO", "no": 20, "color": "<green>"},
-                {"name": "SUCCESS", "no": 25, "color": "<green>"},
-                {"name": "WARNING", "no": 30, "color": "<yellow>"},
-                {"name": "ERROR", "no": 40, "color": "<red>"},
-                {"name": "CRITICAL", "no": 50, "color": "<RED>"}
-            ],
-            "extra": {
-                "app_name": "MidiaAPI",
-                "version": base_settings.API_VERSION,
-                "environment": base_settings.ENVIRONMENT
             },
-            "activation": [
-                *[
-                    (logger, level)
+            "loggers": {
+                # Configurações específicas por módulo
+                **{
+                    logger: {
+                        "level": level,
+                        "handlers": ["console", "file"],
+                        "propagate": False
+                    }
                     for logger, level in self.module_levels.items()
-                ]
-            ],
-            "diagnose": self.diagnose,
-            "backtrace": self.backtrace,
-            "capture_warnings": self.capture_warnings,
-            "capture_exceptions": self.capture_exceptions
+                },
+                # Logger raiz
+                "": {
+                    "level": self.default_level,
+                    "handlers": ["console", "file"],
+                    "propagate": True
+                }
+            }
         }
 
 # Instância global das configurações

@@ -17,7 +17,7 @@ from tasks.tasks import generate_image_task, generate_tts_task, generate_video_t
 from db.database import get_job_status, store_job, update_job_status
 from storage.minio_client import get_presigned_url
 
-# Importa configurações
+# Importa configurações do módulo config
 from config import (
     LOGGING_CONFIG,
     CACHE_CONFIG,
