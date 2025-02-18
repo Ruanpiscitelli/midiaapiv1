@@ -17,8 +17,6 @@ class MinioSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env.minio",
         env_file_encoding="utf-8",
-        case_sensitive=False
-    )
-
-    class Config:
-        env_prefix = "MINIO_" 
+        case_sensitive=False,
+        env_prefix="MINIO_"
+    ) 
