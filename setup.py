@@ -49,7 +49,7 @@ MINIO_SECURE=false
 # Configurações de IA
 MODEL_PATH=./models
 CUDA_VISIBLE_DEVICES=0,1,2,3
-HF_TOKEN=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
+HF_TOKEN=seu_token_aqui  # Substitua pelo seu token do Hugging Face
 """
 
 # Configuração dos modelos e seus hashes MD5
@@ -214,7 +214,7 @@ def main():
 
     # Verifica versão do Python
     if not check_python_version():
-        logger.error("Python 3.10 ou superior é necessário!")
+        logger.error("Python 3.12 ou superior é necessário!")
         sys.exit(1)
 
     # Verifica dependências do sistema
