@@ -10,7 +10,7 @@ from pathlib import Path
 from .base import base_settings
 from .models import models_settings
 from .cache import cache_settings, rate_limit_settings
-from .minio import MinioSettings
+from .minio import minio_settings
 from .video import video_settings
 from .database import database_settings
 from .logging import logging_settings
@@ -59,26 +59,7 @@ SDXL_MODEL_PATH = SDXL_CONFIG.model_path  # Caminho do modelo online (HuggingFac
 SDXL_LOCAL_PATH = SDXL_CONFIG.local_path  # Caminho local do modelo
 
 # Re-exporta configurações do MinIO
-minio_settings = MinioSettings()
-MINIO_CONFIG = {
-    # Configurações de conexão
-    "endpoint": minio_settings.endpoint,
-    "access_key": minio_settings.access_key,
-    "secret_key": minio_settings.secret_key,
-    "secure": minio_settings.secure,
-    
-    # Configurações de bucket
-    "bucket_name": minio_settings.bucket_name,
-    "bucket_region": minio_settings.bucket_region,
-    
-    # Configurações de retry
-    "max_retries": minio_settings.max_retries,
-    "retry_delay": minio_settings.retry_delay,
-    
-    # Configurações de timeout
-    "connection_timeout": minio_settings.connection_timeout,
-    "read_timeout": minio_settings.read_timeout
-}
+MINIO_CONFIG = minio_settings.get_config()
 
 # Re-exporta configurações de cache
 CACHE_CONFIG = {
@@ -114,19 +95,11 @@ DATABASE_CONFIG = database_settings.get_config()
 # Re-exporta configurações de logging
 LOGGING_CONFIG = logging_settings.get_config()
 
+# Re-exporta configurações do Celery
+CELERY_CONFIG = celery_settings.get_config()
+
 # Valida diretórios na inicialização
 models_settings.validate_paths()
-
-# Adicionado para resolver o erro de importação do CELERY_CONFIG
-CELERY_CONFIG = {
-    "broker_url": "redis://localhost:6379/0",
-    "result_backend": "redis://localhost:6379/0",
-    "task_serializer": "json",
-    "result_serializer": "json",
-    "accept_content": ["json"],
-    "timezone": "UTC",
-    "enable_utc": True
-}
 
 # Diretórios base
 BASE_DIR = Path(__file__).resolve().parent.parent
