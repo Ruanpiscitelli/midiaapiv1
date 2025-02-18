@@ -22,7 +22,10 @@ from config import (
     LOGGING_CONFIG,
     CACHE_CONFIG,
     RATE_LIMIT_CONFIG,
-    API_KEY
+    API_KEY,
+    API_TITLE,
+    API_VERSION,
+    DEBUG
 )
 
 # Configura logging
@@ -32,13 +35,16 @@ logger = logging.getLogger("api")
 # Configura rate limiting
 RATE_LIMIT_ENABLED = RATE_LIMIT_CONFIG["enabled"]
 if RATE_LIMIT_ENABLED:
-    limiter = Limiter(key_func=get_remote_address)
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=[RATE_LIMIT_CONFIG["default_limit"]]
+    )
 else:
     limiter = None
 
 # Inicializa a API FastAPI com metadados
 app = FastAPI(
-    title="Gerador de Vídeos com IA",
+    title=API_TITLE,
     description="""
     API para geração automática de vídeos utilizando Inteligência Artificial.
     
@@ -53,15 +59,8 @@ app = FastAPI(
     
     Todas as requisições requerem uma API Key válida no header `X-API-Key`.
     """,
-    version="2.0",
-    contact={
-        "name": "Suporte",
-        "email": "suporte@exemplo.com"
-    },
-    license_info={
-        "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT"
-    }
+    version=API_VERSION,
+    debug=DEBUG
 )
 
 # Configura rate limiting na aplicação
@@ -83,8 +82,7 @@ async def startup():
     FastAPICache.init(
         RedisBackend(redis),
         prefix=CACHE_CONFIG["CACHE_PREFIX"],
-        key_builder=None,  # Usa key builder padrão
-        enable=True
+        expire=CACHE_CONFIG["TTL"]
     )
     
     logger.info("Aplicação iniciada com sucesso")
@@ -734,4 +732,4 @@ async def health_check(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=bool(DEBUG))
