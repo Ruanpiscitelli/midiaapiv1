@@ -1,11 +1,5 @@
 """
-Configurações globais do projeto.
-Este módulo contém todas as configurações necessárias para o funcionamento da aplicação.
-
-Documentação:
-- Todas as configurações são carregadas de variáveis de ambiente ou valores padrão
-- Os diretórios são criados automaticamente se não existirem
-- As configurações são organizadas por módulo/funcionalidade
+Configurações globais otimizadas para máxima performance.
 """
 
 import os
@@ -14,7 +8,7 @@ from dotenv import load_dotenv
 import logging.config
 import torch
 
-# Carrega variáveis de ambiente do arquivo .env
+# Carrega variáveis de ambiente
 load_dotenv()
 
 # Diretórios base
@@ -22,10 +16,10 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
 TEMP_DIR = BASE_DIR / "temp"
 
-# Atualiza caminhos específicos usando Path de forma consistente
-SDXL_LOCAL_PATH = MODELS_DIR.joinpath("sdxl")  # Alternativa ao operador /
-VIDEO_TEMP_DIR = TEMP_DIR.joinpath("video")
-FISH_SPEECH_MODEL_PATH = MODELS_DIR.joinpath("fish_speech")
+# Caminhos específicos
+SDXL_LOCAL_PATH = MODELS_DIR / "sdxl"
+VIDEO_TEMP_DIR = TEMP_DIR / "video"
+FISH_SPEECH_MODEL_PATH = MODELS_DIR / "fish_speech"
 
 # Configurações da API
 API_VERSION = "2.0"
@@ -33,58 +27,104 @@ API_TITLE = "Gerador de Vídeos com IA"
 API_KEY = os.getenv("API_KEY", "minha-chave-api")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-# Configurações do Stable Diffusion XL
-SDXL_MODEL_PATH = os.getenv(
-    "SDXL_MODEL_PATH", 
-    "stabilityai/stable-diffusion-xl-base-1.0"
-)  # Usa modelo do HuggingFace por padrão
-
-# Dispositivo para inferência
+# Otimizações de GPU
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+NUM_GPUS = torch.cuda.device_count() if torch.cuda.is_available() else 0
+CUDA_VISIBLE_DEVICES = os.getenv("CUDA_VISIBLE_DEVICES", "all")
 
+# Configurações do SDXL otimizadas
 SDXL_CONFIG = {
-    "model_path": SDXL_MODEL_PATH,
-    "local_path": SDXL_LOCAL_PATH,  # Adicionado caminho local
+    "model_path": os.getenv("SDXL_MODEL_PATH", "stabilityai/stable-diffusion-xl-base-1.0"),
+    "local_path": SDXL_LOCAL_PATH,
     "vae_path": "madebyollin/sdxl-vae-fp16-fix",
-    "width": min(int(os.getenv("SDXL_WIDTH", "1280")), 2048),
-    "height": min(int(os.getenv("SDXL_HEIGHT", "720")), 2048),
-    "num_inference_steps": min(int(os.getenv("SDXL_STEPS", "25")), 150),
+    
+    # Removidas limitações de resolução
+    "width": int(os.getenv("SDXL_WIDTH", "1280")),
+    "height": int(os.getenv("SDXL_HEIGHT", "720")),
+    
+    # Parâmetros de geração
+    "num_inference_steps": int(os.getenv("SDXL_STEPS", "25")),
     "guidance_scale": float(os.getenv("SDXL_GUIDANCE_SCALE", "7.5")),
-    "negative_prompt": os.getenv(
-        "SDXL_NEGATIVE_PROMPT",
-        "low quality, bad anatomy, worst quality, low resolution"
-    ),
-    "batch_size": min(int(os.getenv("SDXL_BATCH_SIZE", "4")), 8),
-    "max_retries": int(os.getenv("SDXL_MAX_RETRIES", "3")),
-    "timeout": int(os.getenv("SDXL_TIMEOUT", "300"))
+    "negative_prompt": os.getenv("SDXL_NEGATIVE_PROMPT", "low quality, bad anatomy, worst quality"),
+    
+    # Otimizações de performance
+    "batch_size": int(os.getenv("SDXL_BATCH_SIZE", "8")),  # Sem limite máximo
+    "use_fp16": True,  # Usa precisão reduzida para economia de VRAM
+    "enable_vae_tiling": True,  # Habilita tiling do VAE para imagens grandes
+    "enable_sequential_cpu_offload": False,  # Mantém na GPU para máxima performance
+    "enable_attention_slicing": False,  # Desabilitado para máxima performance
+    "enable_model_cpu_offload": False,  # Mantém na GPU
+    "torch_compile": True,  # Usa torch.compile para otimização
+    "use_deterministic": False,  # Desabilita para máxima performance
+    
+    # Multi-GPU
+    "enable_model_parallel": NUM_GPUS > 1,
+    "gpu_ids": list(range(NUM_GPUS)),
+    
+    # Cache e otimizações de memória
+    "model_cpu_offload": False,
+    "attention_slicing": None,
+    "vae_slicing": False,
+    
+    # Timeouts e retries (aumentados)
+    "max_retries": int(os.getenv("SDXL_MAX_RETRIES", "5")),
+    "timeout": int(os.getenv("SDXL_TIMEOUT", "600"))  # 10 minutos
 }
 
-# Configurações do Fish Speech
+# Configurações do Fish Speech baseadas na documentação oficial.
 FISH_SPEECH_CONFIG = {
     "model_path": MODELS_DIR / "fish_speech",
-    "sample_rate": 22050,
-    "max_text_length": 1000,
-    "batch_size": 1,
-    "temperature": 0.8,
-    "supported_languages": ["pt-BR", "en-US"],
     "voice_dir": MODELS_DIR / "fish_speech" / "voices",
-    "custom_voice_dir": MODELS_DIR / "fish_speech" / "custom_voices"
-}
-
-# Configurações do MinIO - Simplificadas e à prova de falhas
-MINIO_CONFIG = {
-    # Configurações essenciais
-    "endpoint": os.getenv("MINIO_ENDPOINT", "minio.ruanpiscitelli.com").split("://")[-1],  # Remove protocolo se presente
-    "access_key": os.getenv("MINIO_ACCESS_KEY", "ts4Xv4Oa01o9HyfujRnH"),
-    "secret_key": os.getenv("MINIO_SECRET_KEY", "BAAp2IWeyR6gVREoxeZMWVbmQM9B7VbuC4U3YHpN"),
-    "secure": True,  # Sempre usar HTTPS em produção
-    "bucket_name": os.getenv("MINIO_BUCKET", "media-bucket"),
+    "custom_voice_dir": MODELS_DIR / "fish_speech" / "custom_voices",
     
-    # URL base para arquivos públicos
-    "public_url_base": "https://minio.ruanpiscitelli.com/api/v1"
+    # Configurações de modelo
+    "version": "1.4",  # Versão mais estável
+    "sample_rate": 22050,
+    "hop_length": 256,
+    "batch_size": 1,
+    
+    # Otimizações de performance
+    "use_compile": True,  # Usa torch.compile para acelerar
+    "use_half": True,    # Usa FP16 para GPUs que suportam
+    "use_flash_attn": True,  # Usa Flash Attention se disponível
+    "use_checkpointing": True,  # Usa gradient checkpointing para economia de memória
+    
+    # Configurações de geração
+    "max_text_length": 1000,
+    "temperature": 0.8,
+    "top_p": 0.9,
+    
+    # Idiomas suportados (baseado na documentação)
+    "supported_languages": [
+        "en-US",  # ~300k horas
+        "zh-CN",  # ~300k horas
+        "de-DE",  # ~20k horas
+        "ja-JP",  # ~20k horas
+        "fr-FR",  # ~20k horas
+        "es-ES",  # ~20k horas
+        "ko-KR",  # ~20k horas
+        "ar-SA",  # ~20k horas
+        "pt-BR"   # Suporte adicionado
+    ]
 }
 
-# Configurações do Celery
+# Configurações de vídeo otimizadas
+VIDEO_CONFIG = {
+    "default_resolution": {
+        "width": int(os.getenv("VIDEO_WIDTH", "1920")),
+        "height": int(os.getenv("VIDEO_HEIGHT", "1080"))
+    },
+    "fps": int(os.getenv("VIDEO_FPS", "30")),
+    "codec": os.getenv("VIDEO_CODEC", "h264_nvenc" if torch.cuda.is_available() else "libx264"),
+    "audio_codec": "aac",
+    "temp_dir": VIDEO_TEMP_DIR,
+    "output_format": "mp4",
+    "bitrate": os.getenv("VIDEO_BITRATE", "8M"),  # Aumentado para melhor qualidade
+    "gpu_acceleration": torch.cuda.is_available(),
+    "threads": os.cpu_count()  # Usa todos os cores disponíveis
+}
+
+# Configurações do Celery otimizadas
 CELERY_CONFIG = {
     "broker_url": os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
     "result_backend": os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0"),
@@ -93,120 +133,45 @@ CELERY_CONFIG = {
     "accept_content": ["json"],
     "enable_utc": True,
     "task_track_started": True,
-    "worker_prefetch_multiplier": 1,  # Evita que um worker pegue muitas tasks de GPU
-    "task_time_limit": 3600,  # Timeout de 1 hora por tarefa
-    "task_soft_time_limit": 3300  # Aviso de timeout 5 minutos antes
+    "worker_prefetch_multiplier": 4,  # Aumentado para melhor throughput
+    "task_time_limit": 7200,  # 2 horas
+    "task_soft_time_limit": 6900,
+    "worker_max_tasks_per_child": None,  # Sem limite
+    "worker_max_memory_per_child": None  # Sem limite de memória
 }
 
-# Configurações do banco de dados
-DATABASE_CONFIG = {
-    "url": os.getenv("DATABASE_URL", "sqlite:///./db/logs.db"),
-    "connect_args": {"check_same_thread": False},  # Necessário para SQLite
-    "echo": DEBUG  # Logs SQL apenas em modo debug
+# Configurações do MinIO (mantidas as mesmas)
+MINIO_CONFIG = {
+    "endpoint": os.getenv("MINIO_ENDPOINT", "minio.ruanpiscitelli.com").split("://")[-1],
+    "access_key": os.getenv("MINIO_ACCESS_KEY", "ts4Xv4Oa01o9HyfujRnH"),
+    "secret_key": os.getenv("MINIO_SECRET_KEY", "BAAp2IWeyR6gVREoxeZMWVbmQM9B7VbuC4U3YHpN"),
+    "secure": True,
+    "bucket_name": os.getenv("MINIO_BUCKET", "media-bucket"),
+    "public_url_base": "https://minio.ruanpiscitelli.com/api/v1"
 }
 
-# Configurações de vídeo
-VIDEO_CONFIG = {
-    "default_resolution": {
-        "width": 1280,
-        "height": 720
-    },
-    "fps": 30,
-    "codec": "libx264",
-    "audio_codec": "aac",
-    "temp_dir": VIDEO_TEMP_DIR,
-    "output_format": "mp4",
-    "bitrate": "4M"  # Bitrate padrão para vídeo HD
-}
-
-# Configurações de segurança
-SECURITY_CONFIG = {
-    "algorithm": "HS256",
-    "access_token_expire_minutes": 30,
-    "refresh_token_expire_days": 7,
-    "secret_key": os.getenv("SECRET_KEY", "sua-chave-secreta-aqui")
-}
-
-# Configurações de logging
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "default",
-            "level": "INFO"
-        },
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": "app.log",
-            "formatter": "default",
-            "level": "INFO"
-        }
-    },
-    "root": {
-        "handlers": ["console", "file"],
-        "level": "INFO"
-    }
-}
-
-# Lista atualizada de diretórios que precisam ser criados
+# Diretórios necessários
 DIRECTORIES_TO_CREATE = [
     MODELS_DIR,
     TEMP_DIR,
-    VIDEO_CONFIG["temp_dir"],
+    VIDEO_TEMP_DIR,
     SDXL_LOCAL_PATH,
     FISH_SPEECH_CONFIG["model_path"],
     FISH_SPEECH_CONFIG["voice_dir"],
     FISH_SPEECH_CONFIG["custom_voice_dir"]
 ]
 
-# Criar diretórios necessários
+# Criação de diretórios
 for directory in DIRECTORIES_TO_CREATE:
     directory.mkdir(parents=True, exist_ok=True)
 
-# Após criar os diretórios, validar se foram criados corretamente
-for directory in DIRECTORIES_TO_CREATE:
-    if not directory.exists():
-        logger.error(f"Falha ao criar diretório: {directory}")
-        raise RuntimeError(f"Não foi possível criar o diretório: {directory}")
-    if not directory.is_dir():
-        logger.error(f"Caminho existe mas não é um diretório: {directory}")
-        raise RuntimeError(f"Caminho existe mas não é um diretório: {directory}")
-
-# Configurar logging
+# Configuração de logging
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
-# Log inicial
-logger.info(f"Iniciando aplicação {API_TITLE} v{API_VERSION}")
+# Log de configurações
+logger.info(f"Iniciando {API_TITLE} v{API_VERSION}")
 logger.info(f"Modo DEBUG: {DEBUG}")
-
-# Validações críticas
-if not API_KEY or len(API_KEY) < 32:
-    logger.warning("API_KEY não configurada ou muito curta. Use uma chave forte em produção!")
-
-if MINIO_CONFIG["access_key"] == "minioadmin" or MINIO_CONFIG["secret_key"] == "minioadmin":
-    logger.warning("Credenciais padrão do MinIO em uso. Altere em produção!")
-
-if SECURITY_CONFIG["secret_key"] == "sua-chave-secreta-aqui":
-    logger.warning("Chave secreta padrão em uso. Defina uma chave forte em produção!")
-
-# Configurações de recursos
-RESOURCE_LIMITS = {
-    "max_concurrent_tasks": int(os.getenv("MAX_CONCURRENT_TASKS", "4")),
-    "max_batch_size": int(os.getenv("MAX_BATCH_SIZE", "8")),
-    "max_video_duration": int(os.getenv("MAX_VIDEO_DURATION", "300")),  # em segundos
-    "max_file_size": int(os.getenv("MAX_FILE_SIZE", "100")) * 1024 * 1024,  # em bytes
-}
-
-# Log de configurações críticas
-logger.info(f"Resolução SDXL: {SDXL_CONFIG['width']}x{SDXL_CONFIG['height']}")
-logger.info(f"Batch size: {SDXL_CONFIG['batch_size']}")
-logger.info(f"Limites de recursos configurados: {RESOURCE_LIMITS}")
- 
+logger.info(f"Device: {DEVICE} ({NUM_GPUS} GPUs disponíveis)")
+logger.info(f"Batch Size SDXL: {SDXL_CONFIG['batch_size']}")
+logger.info(f"Otimizações CUDA: {'Ativadas' if torch.cuda.is_available() else 'Desativadas'}")
