@@ -12,13 +12,13 @@ load_dotenv()
 # Usar configurações do config.py
 try:
     minio_client = Minio(
-        endpoint=MINIO_CONFIG["endpoint"],
+        endpoint=MINIO_CONFIG["endpoint"],  # Apenas host:porta
         access_key=MINIO_CONFIG["access_key"],
         secret_key=MINIO_CONFIG["secret_key"],
         secure=MINIO_CONFIG["secure"],
         region='auto'
     )
-    logger.info("Cliente MinIO inicializado")
+    logger.info(f"Cliente MinIO inicializado com endpoint: {MINIO_CONFIG['endpoint']}")
 except Exception as e:
     logger.error(f"Erro ao inicializar cliente MinIO: {str(e)}")
     raise
@@ -54,8 +54,10 @@ def upload_file(file_path: str | Path, object_name: str) -> str:
             file_path=str(file_path)  # MinIO espera string
         )
         
+        # Construindo a URL pública com o path da API
         protocol = "https" if MINIO_CONFIG["api_secure"] else "http"
-        return f"{protocol}://{MINIO_CONFIG['api_host']}/{MINIO_CONFIG['bucket_name']}/{object_name}"
+        api_path = MINIO_CONFIG["api_path"].rstrip("/")  # Remove trailing slash
+        return f"{protocol}://{MINIO_CONFIG['api_host']}{api_path}/{MINIO_CONFIG['bucket_name']}/{object_name}"
         
     except Exception as e:
         logger.error(f"Erro no upload do arquivo: {str(e)}")
