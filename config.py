@@ -7,6 +7,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import logging.config
 import torch
+from typing import Dict, Any
+import multiprocessing
+import platform
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -46,6 +49,14 @@ LOGGING_CONFIG = {
             "level": "ERROR",
             "maxBytes": 10485760,
             "backupCount": 5
+        },
+        "performance": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "performance.log",
+            "formatter": "detailed",
+            "level": "INFO",
+            "maxBytes": 10485760,
+            "backupCount": 3
         }
     },
     "loggers": {
@@ -61,6 +72,11 @@ LOGGING_CONFIG = {
         },
         "tasks": {
             "handlers": ["console", "file", "error_file"],
+            "level": "INFO",
+            "propagate": False
+        },
+        "performance": {
+            "handlers": ["performance"],
             "level": "INFO",
             "propagate": False
         }
@@ -192,6 +208,30 @@ FISH_SPEECH_CONFIG = {
     ],
 }
 
+# Configurações de vídeo
+VIDEO_CONFIG = {
+    "default_resolution": {
+        "width": 1280,
+        "height": 720
+    },
+    "fps": 30,
+    "codec": "libx264",
+    "audio_codec": "aac",
+    "bitrate": "5000k",
+    "temp_dir": VIDEO_TEMP_DIR,
+    "supported_formats": ["mp4", "webm"],
+    "max_duration": 3600,  # 1 hora em segundos
+    "transitions": {
+        "fade": {
+            "duration": 1.0,
+            "color": "black"
+        },
+        "dissolve": {
+            "duration": 1.0
+        }
+    }
+}
+
 # Configurações do Celery
 CELERY_CONFIG = {
     "broker_url": os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
@@ -230,3 +270,108 @@ MODELS_CONFIG = {
     "fish_speech_model_path": os.getenv("FISH_SPEECH_MODEL_PATH", ""),
     # ... outras configurações de modelo ...
 }
+
+# Configurações de vídeo
+VIDEO_CONFIG = {
+    # Configurações básicas
+    "output_format": "mp4",
+    "temp_dir": str(VIDEO_TEMP_DIR),
+    "default_fps": 30,
+    "default_width": 1920,
+    "default_height": 1080,
+    
+    # Configurações de codificação
+    "video_codec": "libx264",
+    "audio_codec": "aac",
+    "video_bitrate": "4M",
+    "audio_bitrate": "192k",
+    
+    # Configurações de qualidade
+    "preset": "medium",  # Opções: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+    "crf": 23,  # Fator de qualidade constante (0-51, menor = melhor qualidade)
+    
+    # Configurações de threading
+    "threads": "auto",  # Número de threads para codificação
+    
+    # Configurações de cena
+    "transition_duration": 1.0,  # Duração padrão das transições em segundos
+    "min_scene_duration": 3.0,   # Duração mínima de uma cena em segundos
+    "max_scene_duration": 10.0,  # Duração máxima de uma cena em segundos
+    
+    # Configurações de áudio
+    "audio_sample_rate": 44100,
+    "audio_channels": 2,
+    
+    # Configurações de cache
+    "cache_dir": str(TEMP_DIR / "video_cache"),
+    "max_cache_size": 1024 * 1024 * 1024,  # 1GB
+    
+    # Configurações de otimização
+    "use_gpu": torch.cuda.is_available(),
+    "gpu_device": 0 if torch.cuda.is_available() else None,
+    
+    # Adicionar novas configurações
+    "max_video_length": int(os.getenv("MAX_VIDEO_LENGTH", "300")),  # 5 minutos
+    "max_concurrent_renders": int(os.getenv("MAX_CONCURRENT_RENDERS", "2")),
+    "cleanup_interval": 3600,  # Limpar arquivos temporários a cada hora
+    "supported_formats": ["mp4", "webm", "mov"],
+    "max_file_size": 1024 * 1024 * 100  # 100MB
+}
+
+# Garante que o diretório de cache existe
+Path(VIDEO_CONFIG["cache_dir"]).mkdir(parents=True, exist_ok=True)
+
+# Adicionar novas configurações
+SYSTEM_CONFIG = {
+    "environment": os.getenv("ENVIRONMENT", "development"),
+    "max_workers": multiprocessing.cpu_count(),
+    "temp_file_ttl": 3600,  # Tempo de vida de arquivos temporários (1 hora)
+    "max_retries": int(os.getenv("MAX_RETRIES", "3")),
+    "request_timeout": int(os.getenv("REQUEST_TIMEOUT", "30")),
+}
+
+# Adicionar configurações de cache global
+CACHE_CONFIG = {
+    "backend": os.getenv("CACHE_BACKEND", "redis"),
+    "url": os.getenv("CACHE_URL", "redis://localhost:6379/1"),
+    "ttl": int(os.getenv("CACHE_TTL", "3600")),
+    "max_size": int(os.getenv("CACHE_MAX_SIZE", "1073741824")),  # 1GB
+}
+
+# Adicionar configurações de rate limiting
+RATE_LIMIT_CONFIG = {
+    "enabled": os.getenv("RATE_LIMIT_ENABLED", "true").lower() == "true",
+    "default_limit": "100/minute",
+    "storage_url": os.getenv("RATE_LIMIT_STORAGE", "redis://localhost:6379/2")
+}
+
+# Adicionar validações de configuração
+def validate_configs():
+    """Valida todas as configurações críticas."""
+    required_dirs = [TEMP_DIR, MODELS_DIR, VIDEO_TEMP_DIR]
+    for dir_path in required_dirs:
+        if not dir_path.exists():
+            raise RuntimeError(f"Diretório necessário não existe: {dir_path}")
+            
+    if not API_KEY:
+        raise RuntimeError("API_KEY não configurada")
+        
+    # Adiciona outras validações conforme necessário
+
+# Executar validações
+validate_configs()
+
+# Adicionar informações de versão
+VERSION_INFO = {
+    "api_version": API_VERSION,
+    "python_version": platform.python_version(),
+    "torch_version": torch.__version__,
+    "cuda_version": torch.version.cuda if torch.cuda.is_available() else None
+}
+
+# Log de inicialização melhorado
+logger.info("=== Iniciando Sistema ===")
+logger.info(f"Ambiente: {SYSTEM_CONFIG['environment']}")
+logger.info(f"Versão API: {VERSION_INFO['api_version']}")
+logger.info(f"Device: {DEVICE} ({NUM_GPUS} GPUs disponíveis)")
+logger.info(f"Workers: {SYSTEM_CONFIG['max_workers']}")
