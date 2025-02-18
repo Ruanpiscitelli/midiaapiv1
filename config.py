@@ -22,27 +22,29 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
 TEMP_DIR = BASE_DIR / "temp"
 
-# Atualiza caminhos específicos usando Path
-SDXL_MODEL_PATH = MODELS_DIR / "sdxl"
-FISH_SPEECH_MODEL_PATH = MODELS_DIR / "fish_speech"
-VIDEO_TEMP_DIR = TEMP_DIR / "video"
+# Atualiza caminhos específicos usando Path de forma consistente
+SDXL_LOCAL_PATH = MODELS_DIR.joinpath("sdxl")  # Alternativa ao operador /
+VIDEO_TEMP_DIR = TEMP_DIR.joinpath("video")
+FISH_SPEECH_MODEL_PATH = MODELS_DIR.joinpath("fish_speech")
 
 # Configurações da API
 API_VERSION = "2.0"
 API_TITLE = "Gerador de Vídeos com IA"
-API_KEY = os.getenv("API_KEY", "minha-chave-api")  # Chave padrão apenas para desenvolvimento
+API_KEY = os.getenv("API_KEY", "minha-chave-api")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Configurações do Stable Diffusion XL
-SDXL_MODEL_PATH = "stabilityai/stable-diffusion-xl-base-1.0"  # Usa modelo do HuggingFace
-# ou
-# SDXL_MODEL_PATH = str(Path(__file__).parent / "models" / "sdxl")  # Para modelo local
+SDXL_MODEL_PATH = os.getenv(
+    "SDXL_MODEL_PATH", 
+    "stabilityai/stable-diffusion-xl-base-1.0"
+)  # Usa modelo do HuggingFace por padrão
 
 # Dispositivo para inferência
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 SDXL_CONFIG = {
     "model_path": SDXL_MODEL_PATH,
+    "local_path": SDXL_LOCAL_PATH,  # Adicionado caminho local
     "vae_path": "madebyollin/sdxl-vae-fp16-fix",
     "width": min(int(os.getenv("SDXL_WIDTH", "1280")), 2048),
     "height": min(int(os.getenv("SDXL_HEIGHT", "720")), 2048),
@@ -59,10 +61,10 @@ SDXL_CONFIG = {
 
 # Configurações do Fish Speech
 FISH_SPEECH_CONFIG = {
-    "model_path": FISH_SPEECH_MODEL_PATH / "model.pth",
+    "model_path": FISH_SPEECH_MODEL_PATH.joinpath("model.pth"),
     "available_voices": ["male_1", "female_1"],
-    "voice_dir": FISH_SPEECH_MODEL_PATH / "voices",
-    "custom_voice_dir": FISH_SPEECH_MODEL_PATH / "custom_voices",
+    "voice_dir": FISH_SPEECH_MODEL_PATH.joinpath("voices"),
+    "custom_voice_dir": FISH_SPEECH_MODEL_PATH.joinpath("custom_voices"),
     "supported_languages": ["pt-BR", "en-US"],
     "sample_rate": 44100,
     "real_time_factor": 5  # ~5 segundos de processamento por segundo de áudio
@@ -154,7 +156,7 @@ DIRECTORIES_TO_CREATE = [
     MODELS_DIR,
     TEMP_DIR,
     VIDEO_CONFIG["temp_dir"],
-    SDXL_MODEL_PATH,
+    SDXL_LOCAL_PATH,  # Usa o caminho local em vez do HuggingFace
     FISH_SPEECH_MODEL_PATH,
     FISH_SPEECH_CONFIG["voice_dir"],
     FISH_SPEECH_CONFIG["custom_voice_dir"]
@@ -163,6 +165,15 @@ DIRECTORIES_TO_CREATE = [
 # Criar diretórios necessários
 for directory in DIRECTORIES_TO_CREATE:
     directory.mkdir(parents=True, exist_ok=True)
+
+# Após criar os diretórios, validar se foram criados corretamente
+for directory in DIRECTORIES_TO_CREATE:
+    if not directory.exists():
+        logger.error(f"Falha ao criar diretório: {directory}")
+        raise RuntimeError(f"Não foi possível criar o diretório: {directory}")
+    if not directory.is_dir():
+        logger.error(f"Caminho existe mas não é um diretório: {directory}")
+        raise RuntimeError(f"Caminho existe mas não é um diretório: {directory}")
 
 # Configurar logging
 logging.config.dictConfig(LOGGING_CONFIG)

@@ -5,28 +5,18 @@ import uuid
 from loguru import logger
 from config import MINIO_CONFIG
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
-# Configurações do MinIO
-BASE_ENDPOINT = 'minio.ruanpiscitelli.com'
-API_PATH = '/api/v1'
-MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY', 'ts4Xv4Oa01o9HyfujRnH')
-MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY', 'BAAp2IWeyR6gVREoxeZMWVbmQM9B7VbuC4U3YHpN')
-MINIO_BUCKET = os.getenv('MINIO_BUCKET', 'arquivosapi')
-MINIO_SECURE = True
-
-logger.info(f"Conectando ao MinIO em: {BASE_ENDPOINT}{API_PATH}")
-
-# Inicializa o cliente MinIO
+# Usar configurações do config.py
 try:
     minio_client = Minio(
-        endpoint=BASE_ENDPOINT,
-        access_key=MINIO_ACCESS_KEY,
-        secret_key=MINIO_SECRET_KEY,
-        secure=MINIO_SECURE,
-        region='auto',
-        http_client=None
+        endpoint=MINIO_CONFIG["endpoint"],
+        access_key=MINIO_CONFIG["access_key"],
+        secret_key=MINIO_CONFIG["secret_key"],
+        secure=MINIO_CONFIG["secure"],
+        region='auto'
     )
     logger.info("Cliente MinIO inicializado")
 except Exception as e:
@@ -36,58 +26,63 @@ except Exception as e:
 def ensure_bucket_exists():
     """Verifica se o bucket existe e cria se necessário."""
     try:
-        if not minio_client.bucket_exists(MINIO_BUCKET):
-            minio_client.make_bucket(MINIO_BUCKET)
+        if not minio_client.bucket_exists(MINIO_CONFIG["bucket_name"]):
+            minio_client.make_bucket(MINIO_CONFIG["bucket_name"])
+            logger.info(f"Bucket {MINIO_CONFIG['bucket_name']} criado com sucesso")
     except Exception as e:
-        print(f"Erro ao verificar/criar bucket: {str(e)}")
-        # Não levanta exceção, apenas loga o erro
+        logger.error(f"Erro ao verificar/criar bucket: {str(e)}")
 
-def upload_file(file_path: str, object_name: str) -> str:
+def upload_file(file_path: str | Path, object_name: str) -> str:
     """
     Faz upload de um arquivo para o MinIO.
     
     Args:
-        file_path (str): Caminho do arquivo local
+        file_path (str | Path): Caminho do arquivo local
         object_name (str): Nome do objeto no MinIO
         
     Returns:
         str: URL do arquivo no MinIO
     """
     try:
-        # Faz o upload do arquivo
+        file_path = Path(file_path)
+        if not file_path.exists():
+            raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
+            
         minio_client.fput_object(
-            bucket_name=MINIO_BUCKET,
+            bucket_name=MINIO_CONFIG["bucket"],
             object_name=object_name,
-            file_path=file_path
+            file_path=str(file_path)  # MinIO espera string
         )
         
-        # Retorna a URL do arquivo
-        return f"https://{BASE_ENDPOINT}{API_PATH}/{MINIO_BUCKET}/{object_name}"
+        return f"https://{MINIO_CONFIG['endpoint']}{MINIO_CONFIG['api_path']}/{MINIO_CONFIG['bucket']}/{object_name}"
         
     except Exception as e:
-        print(f"Erro no upload do arquivo: {str(e)}")
+        logger.error(f"Erro no upload do arquivo: {str(e)}")
         raise
 
-def download_file(object_name: str, file_path: str) -> bool:
+def download_file(object_name: str, file_path: str | Path) -> bool:
     """
     Faz download de um arquivo do MinIO.
     
     Args:
         object_name (str): Nome do objeto no MinIO
-        file_path (str): Caminho onde salvar o arquivo
+        file_path (str | Path): Caminho onde salvar o arquivo
         
     Returns:
         bool: True se sucesso, False se falha
     """
     try:
+        file_path = Path(file_path)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        
         minio_client.fget_object(
-            bucket_name=MINIO_BUCKET,
+            bucket_name=MINIO_CONFIG["bucket"],
             object_name=object_name,
-            file_path=file_path
+            file_path=str(file_path)
         )
         return True
     except Exception as e:
-        print(f"Erro no download do arquivo: {str(e)}")
+        logger.error(f"Erro no download do arquivo: {str(e)}")
         return False
 
 def get_presigned_url(object_name: str, expires_in: int = 3600):
@@ -99,7 +94,7 @@ def get_presigned_url(object_name: str, expires_in: int = 3600):
     :return: URL pré-assinada para download do arquivo
     """
     try:
-        url = minio_client.presigned_get_object(MINIO_BUCKET, object_name, expires=expires_in)
+        url = minio_client.presigned_get_object(MINIO_CONFIG["bucket"], object_name, expires=expires_in)
         return url
     except S3Error as e:
         print(f"Erro ao gerar URL pré-assinada: {str(e)}")
@@ -112,7 +107,7 @@ def list_files():
     :return: Lista de arquivos no bucket
     """
     try:
-        objects = minio_client.list_objects(MINIO_BUCKET)
+        objects = minio_client.list_objects(MINIO_CONFIG["bucket"])
         return [obj.object_name for obj in objects]
     except S3Error as e:
         print(f"Erro ao listar arquivos: {str(e)}")
@@ -126,7 +121,7 @@ def delete_file(object_name: str):
     :return: True se o arquivo foi deletado, False caso contrário
     """
     try:
-        minio_client.remove_object(MINIO_BUCKET, object_name)
+        minio_client.remove_object(MINIO_CONFIG["bucket"], object_name)
         print(f"Arquivo {object_name} deletado com sucesso.")
         return True
     except S3Error as e:
