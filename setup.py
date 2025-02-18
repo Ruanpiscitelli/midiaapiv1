@@ -22,6 +22,35 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
 VENV_DIR = BASE_DIR / "venv"
 
+# Adicione esta constante no início do arquivo junto com as outras
+DEFAULT_ENV_CONTENT = """# Configurações do Servidor
+HOST=0.0.0.0
+PORT=8000
+WORKERS=4
+LOG_LEVEL=info
+
+# Configurações de Segurança
+SECRET_KEY=sua_chave_secreta_aqui
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Configurações do Banco de Dados
+DATABASE_URL=sqlite:///./db/database.sqlite
+
+# Configurações de Cache
+REDIS_URL=redis://localhost:6379
+
+# Configurações de Storage
+STORAGE_TYPE=local  # local ou minio
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_SECURE=false
+
+# Configurações de IA
+MODEL_PATH=./models
+CUDA_VISIBLE_DEVICES=0,1,2,3
+"""
+
 # Configuração dos modelos e seus hashes MD5
 MODELS_CONFIG = {
     "sdxl": {
@@ -156,12 +185,14 @@ def setup_database() -> bool:
         return False
 
 def create_env_file() -> bool:
-    """Cria arquivo .env se não existir."""
+    """Cria arquivo .env com configurações padrão."""
     try:
         env_path = BASE_DIR / ".env"
         if not env_path.exists():
-            shutil.copy(BASE_DIR / ".env.example", env_path)
-            logger.info("Arquivo .env criado a partir do .env.example")
+            logger.info("Criando novo arquivo .env com configurações padrão...")
+            with open(env_path, "w") as f:
+                f.write(DEFAULT_ENV_CONTENT)
+            logger.info("Arquivo .env criado com sucesso")
         return True
     except Exception as e:
         logger.error(f"Erro ao criar arquivo .env: {str(e)}")
