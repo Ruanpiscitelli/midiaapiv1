@@ -20,6 +20,7 @@ from tqdm import tqdm
 import logging
 import hashlib
 import subprocess
+from huggingface_hub import hf_hub_download
 from config import FISH_SPEECH_CONFIG
 
 # Configuração de logging
@@ -176,42 +177,74 @@ def download_sdxl():
         logger.info(f"{filename} baixado com sucesso!")
 
 def download_fish_speech_model():
-    """Download do modelo Fish Speech e vozes."""
+    """
+    Download do modelo Fish Speech V1.4 do Hugging Face.
+    Baseado em: https://github.com/fishaudio/fish-speech/blob/main/docs/en/inference.md
+    """
     try:
         model_dir = Path(FISH_SPEECH_CONFIG["model_path"])
         model_dir.mkdir(parents=True, exist_ok=True)
         
-        # URLs dos arquivos (substitua pelos URLs reais do seu modelo)
-        files = {
-            "model.pth": "URL_DO_SEU_MODELO_BASE",
-            "voices/default.pth": "URL_DA_VOZ_PADRAO",
-            "config.json": "URL_DO_CONFIG"
-        }
+        # Cria subdiretórios
+        (model_dir / "voices").mkdir(exist_ok=True)
+        (model_dir / "custom_voices").mkdir(exist_ok=True)
         
-        for file_path, url in files.items():
-            full_path = model_dir / file_path
-            
-            # Cria diretório pai se necessário
-            full_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            if not full_path.exists():
-                logger.info(f"Baixando {file_path}...")
-                
-                # Aqui você implementaria o download real do seu modelo
-                # Por exemplo:
-                # response = requests.get(url, stream=True)
-                # with open(full_path, 'wb') as f:
-                #     for chunk in response.iter_content(chunk_size=8192):
-                #         f.write(chunk)
-                
-                # Por enquanto, vamos criar arquivos vazios para teste
-                with open(full_path, 'wb') as f:
-                    f.write(b'placeholder')
-                
-                logger.info(f"{file_path} baixado com sucesso")
+        # Download do modelo do Hugging Face
+        logger.info("Baixando modelo Fish Speech do Hugging Face...")
+        
+        try:
+            # Tenta baixar V1.5 primeiro
+            repo_id = "fishaudio/fish-speech-1.5"
+            files_to_download = [
+                "firefly-gan-vq-fsq-8x1024-21hz-generator.pth",  # Decoder
+                "config.json",
+                "tokenizer.json"
+            ]
+        except Exception:
+            # Fallback para V1.4
+            logger.info("Fallback para Fish Speech V1.4...")
+            repo_id = "fishaudio/fish-speech-1.4"
+            files_to_download = [
+                "model.pth",
+                "config.json",
+                "tokenizer.json"
+            ]
+        
+        for filename in files_to_download:
+            output_path = model_dir / filename
+            if not output_path.exists():
+                logger.info(f"Baixando {filename}...")
+                try:
+                    hf_hub_download(
+                        repo_id=repo_id,
+                        filename=filename,
+                        local_dir=model_dir,
+                        local_dir_use_symlinks=False
+                    )
+                    logger.info(f"{filename} baixado com sucesso")
+                except Exception as e:
+                    logger.error(f"Erro ao baixar {filename}: {e}")
+                    raise
             else:
-                logger.info(f"{file_path} já existe")
-                
+                logger.info(f"{filename} já existe")
+        
+        # Download da voz padrão
+        voice_path = model_dir / "voices" / "default.pth"
+        if not voice_path.exists():
+            logger.info("Baixando voz padrão...")
+            try:
+                hf_hub_download(
+                    repo_id=repo_id,
+                    filename="voices/default.pth",
+                    local_dir=model_dir,
+                    local_dir_use_symlinks=False
+                )
+                logger.info("Voz padrão baixada com sucesso")
+            except Exception as e:
+                logger.error(f"Erro ao baixar voz padrão: {e}")
+                raise
+        
+        logger.info("Download do Fish Speech concluído com sucesso!")
         return True
         
     except Exception as e:
@@ -236,8 +269,14 @@ def main():
     create_directories()
     
     try:
-        # Instala gdown se necessário
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "gdown"])
+        # Instala dependências necessárias
+        subprocess.check_call([
+            sys.executable, 
+            "-m", 
+            "pip", 
+            "install", 
+            "huggingface_hub"
+        ])
         
         # Download SDXL
         download_sdxl()
