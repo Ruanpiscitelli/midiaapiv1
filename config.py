@@ -22,6 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
 TEMP_DIR = BASE_DIR / "temp"
 
+# Atualiza caminhos específicos usando Path
+SDXL_MODEL_PATH = MODELS_DIR / "sdxl"
+FISH_SPEECH_MODEL_PATH = MODELS_DIR / "fish_speech"
+VIDEO_TEMP_DIR = TEMP_DIR / "video"
+
 # Configurações da API
 API_VERSION = "2.0"
 API_TITLE = "Gerador de Vídeos com IA"
@@ -53,7 +58,6 @@ SDXL_CONFIG = {
 }
 
 # Configurações do Fish Speech
-FISH_SPEECH_MODEL_PATH = MODELS_DIR / "fish_speech"
 FISH_SPEECH_CONFIG = {
     "model_path": FISH_SPEECH_MODEL_PATH / "model.pth",
     "available_voices": ["male_1", "female_1"],
@@ -104,7 +108,7 @@ VIDEO_CONFIG = {
     "fps": 30,
     "codec": "libx264",
     "audio_codec": "aac",
-    "temp_dir": TEMP_DIR / "video",
+    "temp_dir": VIDEO_TEMP_DIR,
     "output_format": "mp4",
     "bitrate": "4M"  # Bitrate padrão para vídeo HD
 }
@@ -145,8 +149,8 @@ LOGGING_CONFIG = {
     }
 }
 
-# Criar diretórios necessários
-for directory in [
+# Lista atualizada de diretórios que precisam ser criados
+DIRECTORIES_TO_CREATE = [
     MODELS_DIR,
     TEMP_DIR,
     VIDEO_CONFIG["temp_dir"],
@@ -154,7 +158,10 @@ for directory in [
     FISH_SPEECH_MODEL_PATH,
     FISH_SPEECH_CONFIG["voice_dir"],
     FISH_SPEECH_CONFIG["custom_voice_dir"]
-]:
+]
+
+# Criar diretórios necessários
+for directory in DIRECTORIES_TO_CREATE:
     directory.mkdir(parents=True, exist_ok=True)
 
 # Configurar logging
