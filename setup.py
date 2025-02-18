@@ -252,10 +252,21 @@ def main():
     if not setup_virtual_env():
         logger.error("Falha ao configurar ambiente virtual!")
         sys.exit(1)
+        
+    # Verifica se o torch foi instalado corretamente
+    try:
+        subprocess.run([
+            str(VENV_DIR / "bin" / "python"),
+            "-c",
+            "import torch; print('PyTorch instalado com sucesso!')"
+        ], check=True)
+        logger.info("Setup concluído com sucesso!")
+    except subprocess.CalledProcessError:
+        logger.error("Falha na verificação final do PyTorch!")
+        sys.exit(1)
 
-    # Força um reload do ambiente para garantir que as novas instalações sejam reconhecidas
-    python_executable = str(VENV_DIR / "bin" / "python") if os.name != "nt" else str(VENV_DIR / "Scripts" / "python.exe")
-    os.execv(python_executable, [python_executable, __file__])
+    # Remove o reload automático que estava causando o loop
+    # os.execv(python_executable, [python_executable, __file__])
 
 if __name__ == "__main__":
     main() 
