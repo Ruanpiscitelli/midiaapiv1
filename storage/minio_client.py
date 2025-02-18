@@ -49,12 +49,13 @@ def upload_file(file_path: str | Path, object_name: str) -> str:
             raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
             
         minio_client.fput_object(
-            bucket_name=MINIO_CONFIG["bucket"],
+            bucket_name=MINIO_CONFIG["bucket_name"],
             object_name=object_name,
             file_path=str(file_path)  # MinIO espera string
         )
         
-        return f"https://{MINIO_CONFIG['endpoint']}{MINIO_CONFIG['api_path']}/{MINIO_CONFIG['bucket']}/{object_name}"
+        protocol = "https" if MINIO_CONFIG["api_secure"] else "http"
+        return f"{protocol}://{MINIO_CONFIG['api_host']}/{MINIO_CONFIG['bucket_name']}/{object_name}"
         
     except Exception as e:
         logger.error(f"Erro no upload do arquivo: {str(e)}")
@@ -76,7 +77,7 @@ def download_file(object_name: str, file_path: str | Path) -> bool:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         
         minio_client.fget_object(
-            bucket_name=MINIO_CONFIG["bucket"],
+            bucket_name=MINIO_CONFIG["bucket_name"],
             object_name=object_name,
             file_path=str(file_path)
         )
@@ -94,10 +95,14 @@ def get_presigned_url(object_name: str, expires_in: int = 3600):
     :return: URL pré-assinada para download do arquivo
     """
     try:
-        url = minio_client.presigned_get_object(MINIO_CONFIG["bucket"], object_name, expires=expires_in)
+        url = minio_client.presigned_get_object(
+            MINIO_CONFIG["bucket_name"], 
+            object_name, 
+            expires=expires_in
+        )
         return url
     except S3Error as e:
-        print(f"Erro ao gerar URL pré-assinada: {str(e)}")
+        logger.error(f"Erro ao gerar URL pré-assinada: {str(e)}")
         return None
 
 def list_files():
@@ -107,10 +112,10 @@ def list_files():
     :return: Lista de arquivos no bucket
     """
     try:
-        objects = minio_client.list_objects(MINIO_CONFIG["bucket"])
+        objects = minio_client.list_objects(MINIO_CONFIG["bucket_name"])
         return [obj.object_name for obj in objects]
     except S3Error as e:
-        print(f"Erro ao listar arquivos: {str(e)}")
+        logger.error(f"Erro ao listar arquivos: {str(e)}")
         return []
 
 def delete_file(object_name: str):
@@ -121,11 +126,11 @@ def delete_file(object_name: str):
     :return: True se o arquivo foi deletado, False caso contrário
     """
     try:
-        minio_client.remove_object(MINIO_CONFIG["bucket"], object_name)
-        print(f"Arquivo {object_name} deletado com sucesso.")
+        minio_client.remove_object(MINIO_CONFIG["bucket_name"], object_name)
+        logger.info(f"Arquivo {object_name} deletado com sucesso.")
         return True
     except S3Error as e:
-        print(f"Erro ao deletar arquivo: {str(e)}")
+        logger.error(f"Erro ao deletar arquivo: {str(e)}")
         return False
 
 def check_minio_connection() -> bool:

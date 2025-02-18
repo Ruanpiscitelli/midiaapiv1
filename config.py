@@ -72,12 +72,16 @@ FISH_SPEECH_CONFIG = {
 
 # Configurações do MinIO
 MINIO_CONFIG = {
+    # O endpoint não deve incluir path, apenas host:porta
     "endpoint": os.getenv("MINIO_ENDPOINT", "localhost:9000"),
     "access_key": os.getenv("MINIO_ACCESS_KEY", "minioadmin"),
     "secret_key": os.getenv("MINIO_SECRET_KEY", "minioadmin"),
     "secure": os.getenv("MINIO_SECURE", "False").lower() == "true",
     "bucket_name": os.getenv("MINIO_BUCKET", "media-bucket"),
-    "presigned_url_expiry": 3600  # URLs pré-assinadas expiram em 1 hora
+    "presigned_url_expiry": 3600,  # URLs pré-assinadas expiram em 1 hora
+    # Adicionando configuração separada para API
+    "api_host": os.getenv("MINIO_API_HOST", "localhost:9000"),  # Host para URLs públicas
+    "api_secure": os.getenv("MINIO_API_SECURE", "False").lower() == "true"  # HTTPS para URLs públicas
 }
 
 # Configurações do Celery
