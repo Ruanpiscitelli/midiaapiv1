@@ -15,7 +15,7 @@ from loguru import logger
 from torch.cuda import amp
 from functools import lru_cache
 
-from config import FISH_SPEECH_CONFIG, MODELS_CONFIG
+from config import MODELS_CONFIG
 from storage.minio_client import upload_file
 
 class FishSpeechTTS:
@@ -24,9 +24,28 @@ class FishSpeechTTS:
     def __init__(self):
         """Inicializa configurações básicas sem carregar o modelo."""
         # Configurações básicas
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.config = FISH_SPEECH_CONFIG
-        self.model_dir = Path(self.config["model_path"])
+        self.device = torch.device(MODELS_CONFIG["device"])
+        self.model_dir = Path(MODELS_CONFIG["fish_speech_model_path"])
+        self.voice_dir = Path(MODELS_CONFIG["fish_speech_voice_dir"])
+        self.custom_voice_dir = Path(MODELS_CONFIG["fish_speech_custom_voice_dir"])
+        
+        # Configurações do modelo
+        self.sample_rate = 22050
+        self.max_text_length = 2000
+        self.temperature = 0.8
+        self.use_half = True
+        self.use_compile = True
+        
+        # Configurações de idiomas e vozes
+        self.supported_languages = [
+            "en-US", "zh-CN", "de-DE", "ja-JP",
+            "fr-FR", "es-ES", "ko-KR", "ar-SA",
+            "pt-BR", "it-IT", "ru-RU", "hi-IN"
+        ]
+        self.available_voices = [
+            "male_1", "male_2", "female_1", "female_2",
+            "child_1", "elder_1", "neutral_1"
+        ]
         
         # Inicializa atributos
         self.model = None
@@ -36,14 +55,14 @@ class FishSpeechTTS:
         # Verifica diretórios necessários
         self._ensure_directories()
         
-        logger.info(f"Fish Speech V{self.config['version']} configurado para {self.device}")
+        logger.info(f"Fish Speech configurado para {self.device}")
 
     def _ensure_directories(self):
         """Garante que os diretórios necessários existem."""
         try:
             self.model_dir.mkdir(parents=True, exist_ok=True)
-            (self.model_dir / "voices").mkdir(exist_ok=True)
-            (self.model_dir / "custom_voices").mkdir(exist_ok=True)
+            self.voice_dir.mkdir(parents=True, exist_ok=True)
+            self.custom_voice_dir.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             logger.error(f"Erro ao criar diretórios: {e}")
             raise RuntimeError("Não foi possível criar diretórios necessários") from e
@@ -57,12 +76,10 @@ class FishSpeechTTS:
             Path: Caminho para o arquivo do modelo
         """
         # Tenta obter da configuração
-        config_path = MODELS_CONFIG.get("fish_speech_model_path")
-        if config_path:
-            path = Path(config_path)
-            if path.exists():
-                logger.info(f"Usando modelo configurado em: {path}")
-                return path
+        model_path = Path(MODELS_CONFIG["fish_speech_model_path"]) / "model.pth"
+        if model_path.exists():
+            logger.info(f"Usando modelo configurado em: {model_path}")
+            return model_path
                 
         # Tenta caminhos padrão
         default_paths = [
@@ -109,9 +126,9 @@ class FishSpeechTTS:
             
             # Aplica otimizações se disponível CUDA
             if torch.cuda.is_available():
-                if self.config["use_half"]:
+                if self.use_half:
                     self.model = self.model.half()
-                if self.config["use_compile"]:
+                if self.use_compile:
                     self.model = torch.compile(self.model)
                     
             logger.info(f"Modelo carregado e otimizado em: {self.device}")
@@ -130,10 +147,10 @@ class FishSpeechTTS:
         """Implementação real da geração de áudio."""
         try:
             # Validações
-            if len(text) > self.config["max_text_length"]:
-                raise ValueError(f"Texto muito longo. Máximo: {self.config['max_text_length']}")
+            if len(text) > self.max_text_length:
+                raise ValueError(f"Texto muito longo. Máximo: {self.max_text_length}")
             
-            if language not in self.config["supported_languages"]:
+            if language not in self.supported_languages:
                 logger.warning(f"Idioma {language} não oficialmente suportado")
             
             # Carrega voz
@@ -142,7 +159,7 @@ class FishSpeechTTS:
                 raise ValueError(f"Voz {voice_name} não encontrada")
             
             # Configurações de geração
-            temp = temperature or self.config["temperature"]
+            temp = temperature or self.temperature
             
             # Gera áudio com otimizações
             with amp.autocast(enabled=torch.cuda.is_available()):
@@ -160,7 +177,7 @@ class FishSpeechTTS:
             torchaudio.save(
                 output_path,
                 waveform.cpu(),
-                self.config["sample_rate"]
+                self.sample_rate
             )
             
             # Limpa cache CUDA
@@ -180,15 +197,15 @@ class FishSpeechTTS:
         
         try:
             # Procura primeiro nas vozes pré-treinadas
-            voice_path = self.model_dir / "voices" / f"{voice_name}.pth"
+            voice_path = self.voice_dir / f"{voice_name}.pth"
             
             # Valida apenas vozes pré-treinadas
             if voice_path.exists():
-                if voice_name not in FISH_SPEECH_CONFIG["available_voices"]:
+                if voice_name not in self.available_voices:
                     raise ValueError(f"Voz pré-treinada {voice_name} não disponível")
             else:
                 # Para vozes customizadas, apenas verifica se o arquivo existe
-                voice_path = self.model_dir / "custom_voices" / f"{voice_name}.pth"
+                voice_path = self.custom_voice_dir / f"{voice_name}.pth"
             
             if not voice_path.exists():
                 raise FileNotFoundError(f"Voz {voice_name} não encontrada")
