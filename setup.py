@@ -114,24 +114,36 @@ def setup_virtual_env() -> bool:
         # Determina o pip do ambiente virtual
         pip_path = VENV_DIR / "bin" / "pip" if os.name != "nt" else VENV_DIR / "Scripts" / "pip.exe"
         
-        # Instala e atualiza pip primeiro
-        subprocess.run([str(pip_path), "install", "--upgrade", "pip"], check=True)
+        # Instala e atualiza pip e setuptools primeiro
+        subprocess.run([str(pip_path), "install", "--upgrade", "pip", "setuptools", "wheel"], check=True)
         
-        # Desinstala versões anteriores do torch para evitar conflitos
+        # Desinstala versões anteriores do torch e relacionados
         subprocess.run([str(pip_path), "uninstall", "-y", "torch", "torchvision", "torchaudio"], check=True)
         
-        # Instala torch e cuda com versões específicas e compatíveis
+        # Instala torch e cuda ANTES de outras dependências
         logger.info("Instalando PyTorch com suporte CUDA...")
-        subprocess.run([
+        torch_install = subprocess.run([
             str(pip_path), 
             "install", 
-            "torch==2.2.0", 
-            "torchvision==0.17.0", 
-            "torchaudio==2.2.0", 
+            "--no-cache-dir",
+            "torch==2.2.0",
+            "torchvision==0.17.0",
+            "torchaudio==2.2.0",
             "--index-url", 
             "https://download.pytorch.org/whl/cu121"
         ], check=True)
         
+        if torch_install.returncode != 0:
+            logger.error("Falha ao instalar PyTorch!")
+            return False
+            
+        # Verifica se torch foi instalado
+        try:
+            subprocess.run([sys.executable, "-c", "import torch"], check=True)
+        except subprocess.CalledProcessError:
+            logger.error("PyTorch não foi instalado corretamente!")
+            return False
+            
         # Depois instala o resto das dependências
         subprocess.run([str(pip_path), "install", "-r", "requirements.txt"], check=True)
         
@@ -238,27 +250,9 @@ def main():
         logger.error("Falha ao configurar ambiente virtual!")
         sys.exit(1)
 
-    # Agora verifica dependências do sistema
-    if not check_system_dependencies():
-        logger.error("Dependências do sistema não atendidas!")
-        sys.exit(1)
-
-    # Cria arquivo .env
-    if not create_env_file():
-        logger.error("Falha ao criar arquivo .env!")
-        sys.exit(1)
-
-    # Setup dos modelos
-    if not setup_models():
-        logger.error("Falha ao configurar modelos!")
-        sys.exit(1)
-
-    # Setup do banco de dados
-    if not setup_database():
-        logger.error("Falha ao configurar banco de dados!")
-        sys.exit(1)
-
-    logger.info("Setup concluído com sucesso!")
+    # Força um reload do ambiente para garantir que as novas instalações sejam reconhecidas
+    python_executable = str(VENV_DIR / "bin" / "python") if os.name != "nt" else str(VENV_DIR / "Scripts" / "python.exe")
+    os.execv(python_executable, [python_executable, __file__])
 
 if __name__ == "__main__":
     main() 
