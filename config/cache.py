@@ -62,13 +62,20 @@ class RateLimitSettings(BaseSettings):
     
     # Limites específicos
     LIMITS: Dict[str, str] = {
+        # Limites para geração de conteúdo
         "generate_video": "10/minute",
         "generate_image": "20/minute",
         "generate_tts": "30/minute",
         "clone_voice": "5/minute",
+        
+        # Limites para consultas
         "status": "100/minute",
         "voices": "50/minute",
-        "health": "100/minute"
+        "health": "100/minute",
+        
+        # Limites para resultados
+        "get_result": "100/minute",
+        "download": "50/minute"
     }
     
     model_config = SettingsConfigDict(
@@ -84,7 +91,9 @@ class RateLimitSettings(BaseSettings):
             "enabled": self.ENABLED,
             "default_limit": self.DEFAULT_LIMIT,
             "storage_url": self.STORAGE_URL,
-            "limits": self.LIMITS
+            "limits": self.LIMITS,
+            # Re-exporta limites individuais para acesso direto
+            **self.LIMITS
         }
 
 # Instâncias globais

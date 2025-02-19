@@ -360,7 +360,7 @@ class HealthCheckResponse(BaseModel):
     tags=["Vídeo"],
     dependencies=[Depends(authenticate_api_key)]
 )
-@limiter.limit(RATE_LIMIT_CONFIG["generate_video"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["generate_video"]) if limiter else None
 async def generate_video(
     request: Request,
     video_request: VideoRequest,
@@ -395,7 +395,7 @@ async def generate_video(
     summary="Consulta o status de um job",
     dependencies=[Depends(authenticate_api_key)]
 )
-@limiter.limit(RATE_LIMIT_CONFIG["status"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["status"]) if limiter else None
 @cache(expire=CACHE_CONFIG["CACHE_TIMES"]["status"])
 async def get_job_status_endpoint(
     request: Request,
@@ -507,7 +507,7 @@ async def get_job_result(job_id: str):
     summary="Gera uma imagem com Stable Diffusion XL",
     dependencies=[Depends(authenticate_api_key)]
 )
-@limiter.limit(RATE_LIMIT_CONFIG["generate_image"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["generate_image"]) if limiter else None
 async def generate_image(
     request: Request,
     image_request: ImageRequest,
@@ -544,7 +544,7 @@ async def generate_image(
     A voz clonada pode ser usada posteriormente para síntese de fala.
     """
 )
-@limiter.limit(RATE_LIMIT_CONFIG["clone_voice"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["clone_voice"]) if limiter else None
 async def clone_voice(
     request: Request,
     clone_request: VoiceCloneRequest,
@@ -583,7 +583,7 @@ async def clone_voice(
     summary="Gera áudio a partir de texto",
     dependencies=[Depends(authenticate_api_key)]
 )
-@limiter.limit(RATE_LIMIT_CONFIG["generate_tts"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["generate_tts"]) if limiter else None
 async def generate_tts(
     request: Request,
     tts_request: TTSRequest,
@@ -627,7 +627,7 @@ async def generate_tts(
     summary="Lista vozes disponíveis",
     description="Retorna uma lista de todas as vozes disponíveis para síntese de fala."
 )
-@limiter.limit(RATE_LIMIT_CONFIG["voices"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["voices"]) if limiter else None
 @cache(expire=CACHE_CONFIG["CACHE_TIMES"]["voices"])
 async def list_voices(
     request: Request,
@@ -681,7 +681,7 @@ async def get_movies_status(project_id: str, x_api_key: str = Depends(authentica
     tags=["Sistema"],
     summary="Verifica o status do sistema"
 )
-@limiter.limit(RATE_LIMIT_CONFIG["health"]) if limiter else None
+@limiter.limit(RATE_LIMIT_CONFIG["limits"]["health"]) if limiter else None
 @cache(expire=CACHE_CONFIG["CACHE_TIMES"]["health"])
 async def health_check(request: Request):
     """Retorna o status geral do sistema e suas dependências."""
